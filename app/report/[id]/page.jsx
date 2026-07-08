@@ -26,18 +26,17 @@ const BOTS = {
 };
 
 const ENERGY = { label: 'Energy Made Easy — the Government tool that compares every retailer, free', url: 'https://www.energymadeeasy.gov.au' };
+const TELCO = { label: 'MoneySmart — choosing a phone & internet plan', url: 'https://moneysmart.gov.au/student-life-and-money/choosing-a-mobile-phone-plan' };
 const COMPARE = {
   electricity: ENERGY, gas: ENERGY, solar: ENERGY, ev_charging: ENERGY,
-  water: { label: 'MoneySmart — tips on managing utility bills', url: 'https://moneysmart.gov.au/managing-debt' },
-  internet: { label: 'MoneySmart — phone & internet costs', url: 'https://moneysmart.gov.au/managing-debt/phone-and-internet' },
-  mobile: { label: 'MoneySmart — phone & internet costs', url: 'https://moneysmart.gov.au/managing-debt/phone-and-internet' },
-  phone: { label: 'MoneySmart — phone & internet costs', url: 'https://moneysmart.gov.au/managing-debt/phone-and-internet' },
-  home_insurance: { label: 'MoneySmart — how to save on insurance', url: 'https://moneysmart.gov.au/how-to-save-on-insurance' },
-  car_insurance: { label: 'MoneySmart — car insurance', url: 'https://moneysmart.gov.au/how-to-save-on-insurance/car-insurance' },
-  landlord_insurance: { label: 'MoneySmart — how to save on insurance', url: 'https://moneysmart.gov.au/how-to-save-on-insurance' },
+  water: { label: 'MoneySmart — ways to save on energy & utility costs', url: 'https://moneysmart.gov.au/budgeting/ways-to-save-on-energy-costs' },
+  internet: TELCO, mobile: TELCO, phone: TELCO,
+  home_insurance: { label: 'MoneySmart — home insurance', url: 'https://moneysmart.gov.au/home-insurance' },
+  car_insurance: { label: 'MoneySmart — car insurance', url: 'https://moneysmart.gov.au/car-insurance' },
+  landlord_insurance: { label: 'MoneySmart — home insurance', url: 'https://moneysmart.gov.au/home-insurance' },
   health_insurance: { label: 'privatehealth.gov.au — the Government tool that compares every health policy', url: 'https://www.privatehealth.gov.au' },
-  mortgage: { label: 'MoneySmart — home loans & mortgage calculator', url: 'https://moneysmart.gov.au/home-loans' },
-  personal_loan: { label: 'MoneySmart — personal loans', url: 'https://moneysmart.gov.au/personal-loans' },
+  mortgage: { label: 'MoneySmart — home loans & mortgage switching calculator', url: 'https://moneysmart.gov.au/home-loans' },
+  personal_loan: { label: 'MoneySmart — managing loans & debt', url: 'https://moneysmart.gov.au/managing-debt' },
   credit_card: { label: 'MoneySmart — credit cards', url: 'https://moneysmart.gov.au/credit-cards' },
 };
 
