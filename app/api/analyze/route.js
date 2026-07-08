@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { createClient } from '../../../lib/supabase/server';
-import { EXTRACTION_SYSTEM_PROMPT, ANALYSIS_SYSTEM_PROMPT, DISCLAIMER_VERSION } from '../../../lib/ai/prompts';
+import { EXTRACTION_SYSTEM_PROMPT, ANALYSIS_SYSTEM_PROMPT, DISCLAIMER, DISCLAIMER_VERSION } from '../../../lib/ai/prompts';
 import { complianceViolations } from '../../../lib/ai/compliance';
 
 export const maxDuration = 120;
@@ -12,7 +12,26 @@ const MIME_OK = ['application/pdf', 'image/jpeg', 'image/png'];
 function parseJson(text) {
   const m = text.match(/\{[\s\S]*\}/);
   if (!m) throw new Error('AI returned no JSON');
-  return JSON.parse(m[0]);
+  const cleaned = m[0].replace(/,\s*([}\]])/g, '$1');
+  return JSON.parse(cleaned);
+}
+
+async function emailReport(origin, email, provider, summary, analysisId) {
+  if (!process.env.RESEND_API_KEY || !email) return;
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + process.env.RESEND_API_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: 'BillSavvy AI <onboarding@resend.dev>',
+        to: [email],
+        subject: 'Your BillSavvy report: ' + (provider || 'your bill'),
+        html: '<h2>Your bill report is ready</h2><p>' + summary + '</p>' +
+              '<p><a href="' + origin + '/report/' + analysisId + '" style="background:#ea6a1f;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;display:inline-block">View full report</a></p>' +
+              '<hr><p style="font-size:12px;color:#888">' + DISCLAIMER + '</p>',
+      }),
+    });
+  } catch (e) { /* email best-effort */ }
 }
 
 export async function POST(request) {
@@ -38,15 +57,14 @@ export async function POST(request) {
     if (file.size > 20 * 1024 * 1024) return NextResponse.json({ error: 'File is over 20 MB.' }, { status: 400 });
 
     const bytes = Buffer.from(await file.arrayBuffer());
-
     const docId = crypto.randomUUID();
-    const path = `${user.id}/${docId}`;
+    const path = user.id + '/' + docId;
     const { error: upErr } = await supabase.storage.from('documents').upload(path, bytes, { contentType: file.type });
-    if (upErr) return NextResponse.json({ error: `Storage: ${upErr.message}` }, { status: 500 });
-    const { data: doc, error: docErr } = await supabase.from('documents').insert({
+    if (upErr) return NextResponse.json({ error: 'Storage: ' + upErr.message }, { status: 500 });
+    const { error: docErr } = await supabase.from('documents').insert({
       id: docId, user_id: user.id, storage_path: path, file_name: file.name,
       mime_type: file.type, file_size: file.size, status: 'processing',
-    }).select().single();
+    });
     if (docErr) return NextResponse.json({ error: docErr.message }, { status: 500 });
 
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -56,7 +74,7 @@ export async function POST(request) {
       : { type: 'image', source: { type: 'base64', media_type: file.type, data: b64 } };
 
     const ext = await anthropic.messages.create({
-      model: MODEL, max_tokens: 2000, system: EXTRACTION_SYSTEM_PROMPT,
+      model: MODEL, max_tokens: 3000, system: EXTRACTION_SYSTEM_PROMPT,
       messages: [{ role: 'user', content: [contentBlock, { type: 'text', text: 'Extract this bill.' }] }],
     });
     const extracted = parseJson(ext.content.map((c) => c.text || '').join(''));
@@ -80,13 +98,14 @@ export async function POST(request) {
     while (tries < 2) {
       tries++;
       const ana = await anthropic.messages.create({
-        model: MODEL, max_tokens: 3000, system: ANALYSIS_SYSTEM_PROMPT,
-        messages: [{ role: 'user', content: `Extracted bill:\n${JSON.stringify(extracted)}` }],
+        model: MODEL, max_tokens: 5000, system: ANALYSIS_SYSTEM_PROMPT,
+        messages: [{ role: 'user', content: 'Extracted bill:\n' + JSON.stringify(extracted) }],
       });
       const text = ana.content.map((c) => c.text || '').join('');
-      if (complianceViolations(text).length === 0) { analysis = parseJson(text); break; }
+      if (complianceViolations(text).length) continue;
+      try { analysis = parseJson(text); break; } catch (e) { /* malformed JSON, retry */ }
     }
-    if (!analysis) return NextResponse.json({ error: 'Analysis failed compliance checks. Please try again.' }, { status: 500 });
+    if (!analysis) return NextResponse.json({ error: 'Analysis failed, please try again.' }, { status: 500 });
 
     const { data: saved, error: anaErr } = await supabase.from('bill_analysis').insert({
       bill_id: bill.id, user_id: user.id,
@@ -101,6 +120,8 @@ export async function POST(request) {
     if (anaErr) return NextResponse.json({ error: anaErr.message }, { status: 500 });
 
     await supabase.from('documents').update({ status: 'complete' }).eq('id', docId);
+    const origin = new URL(request.url).origin;
+    await emailReport(origin, user.email, bill.provider_name, analysis.summary, saved.id);
     return NextResponse.json({ analysis_id: saved.id });
   } catch (e) {
     return NextResponse.json({ error: e.message || 'Unexpected error' }, { status: 500 });
