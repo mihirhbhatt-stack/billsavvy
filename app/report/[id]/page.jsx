@@ -25,6 +25,22 @@ const BOTS = {
   other: { name: 'Savvy', emoji: '📄', role: 'your bill analyst' },
 };
 
+const ENERGY = { label: 'Energy Made Easy — the Government tool that compares every retailer, free', url: 'https://www.energymadeeasy.gov.au' };
+const COMPARE = {
+  electricity: ENERGY, gas: ENERGY, solar: ENERGY, ev_charging: ENERGY,
+  water: { label: 'MoneySmart — tips on managing utility bills', url: 'https://moneysmart.gov.au/managing-debt' },
+  internet: { label: 'MoneySmart — phone & internet costs', url: 'https://moneysmart.gov.au/managing-debt/phone-and-internet' },
+  mobile: { label: 'MoneySmart — phone & internet costs', url: 'https://moneysmart.gov.au/managing-debt/phone-and-internet' },
+  phone: { label: 'MoneySmart — phone & internet costs', url: 'https://moneysmart.gov.au/managing-debt/phone-and-internet' },
+  home_insurance: { label: 'MoneySmart — how to save on insurance', url: 'https://moneysmart.gov.au/how-to-save-on-insurance' },
+  car_insurance: { label: 'MoneySmart — car insurance', url: 'https://moneysmart.gov.au/how-to-save-on-insurance/car-insurance' },
+  landlord_insurance: { label: 'MoneySmart — how to save on insurance', url: 'https://moneysmart.gov.au/how-to-save-on-insurance' },
+  health_insurance: { label: 'privatehealth.gov.au — the Government tool that compares every health policy', url: 'https://www.privatehealth.gov.au' },
+  mortgage: { label: 'MoneySmart — home loans & mortgage calculator', url: 'https://moneysmart.gov.au/home-loans' },
+  personal_loan: { label: 'MoneySmart — personal loans', url: 'https://moneysmart.gov.au/personal-loans' },
+  credit_card: { label: 'MoneySmart — credit cards', url: 'https://moneysmart.gov.au/credit-cards' },
+};
+
 const TIPS = [
   'Be polite but firm — mention you are reviewing your options and considering switching.',
   'Ask directly: "Is this the best rate/plan you can offer me?" then stay quiet and let them answer.',
@@ -46,6 +62,7 @@ export default async function Report({ params }) {
   if (!a) return <p>Report not found.</p>;
   const bill = a.bills;
   const bot = BOTS[bill?.category] || BOTS.other;
+  const compare = COMPARE[bill?.category];
 
   const card = { background: '#fff', border: '1px solid #eadfd5', borderRadius: 14, padding: 22, marginBottom: 16 };
   const h3 = { margin: '0 0 10px', fontSize: 17 };
@@ -98,6 +115,18 @@ export default async function Report({ params }) {
               <p style={{ margin: '4px 0 0', color: '#4a3f36' }}>{s.detail}</p>
             </div>
           ))}
+        </div>
+      )}
+
+      {compare && (
+        <div style={{ ...card, borderColor: '#1f9d8b' }}>
+          <h3 style={h3}>🔍 Compare &amp; switch</h3>
+          <p style={{ fontSize: 13, color: '#6e6058', marginTop: 0 }}>Want to check if there's a cheaper option? This free, independent resource compares providers with no commissions and no bias:</p>
+          <a href={compare.url} target="_blank" rel="noopener noreferrer"
+            style={{ display: 'inline-block', background: '#1f9d8b', color: '#fff', padding: '11px 20px', borderRadius: 999, textDecoration: 'none', fontWeight: 700 }}>
+            {compare.label} ↗
+          </a>
+          <p style={{ fontSize: 12, color: '#6e6058', marginTop: 12 }}>BillSavvy AI does not recommend any specific provider or product and does not receive commissions from these links. They are independent public resources. The decision is yours.</p>
         </div>
       )}
 
