@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
 import { createClient } from '../../lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
@@ -26,6 +27,15 @@ function greeting() {
   if (h < 12) return 'Good morning';
   if (h < 18) return 'Good afternoon';
   return 'Good evening';
+}
+
+async function deleteBill(formData) {
+  'use server';
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+  await supabase.from('bills').delete().eq('id', formData.get('id'));
+  revalidatePath('/dashboard');
 }
 
 export default async function Dashboard() {
@@ -102,18 +112,23 @@ export default async function Dashboard() {
               const done = b.bill_analysis?.length;
               const est = done ? b.bill_analysis[0].annual_estimate : null;
               return (
-                <a key={b.id} href={done ? `/report/${b.bill_analysis[0].id}` : '/upload'}
-                  style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', background: '#fff', border: '1px solid #eadfd5', borderRadius: 12, marginBottom: 10, textDecoration: 'none', color: '#241a12' }}>
-                  <span style={{ fontSize: 26 }}>{ICONS[b.category] || ICONS.other}</span>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700 }}>{b.provider_name || b.category.replace('_', ' ')}</div>
-                    <div style={{ fontSize: 13, color: '#6e6058', textTransform: 'capitalize' }}>{b.category.replace('_', ' ')}{b.due_date ? ` · due ${b.due_date}` : ''}</div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontWeight: 700 }}>{b.amount_due ? `$${Number(b.amount_due).toFixed(2)}` : ''}</div>
-                    <div style={{ fontSize: 12, color: done ? '#1f9d8b' : '#c98a00' }}>{done ? (est ? `~$${Number(est).toFixed(0)}/yr →` : 'View report →') : 'Re-upload to analyse'}</div>
-                  </div>
-                </a>
+                <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', background: '#fff', border: '1px solid #eadfd5', borderRadius: 12, marginBottom: 10 }}>
+                  <a href={done ? `/report/${b.bill_analysis[0].id}` : '/upload'} style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1, textDecoration: 'none', color: '#241a12' }}>
+                    <span style={{ fontSize: 26 }}>{ICONS[b.category] || ICONS.other}</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 700 }}>{b.provider_name || b.category.replace('_', ' ')}</div>
+                      <div style={{ fontSize: 13, color: '#6e6058', textTransform: 'capitalize' }}>{b.category.replace('_', ' ')}{b.due_date ? ` · due ${b.due_date}` : ''}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontWeight: 700 }}>{b.amount_due ? `$${Number(b.amount_due).toFixed(2)}` : ''}</div>
+                      <div style={{ fontSize: 12, color: done ? '#1f9d8b' : '#c98a00' }}>{done ? (est ? `~$${Number(est).toFixed(0)}/yr →` : 'View report →') : 'Re-upload to analyse'}</div>
+                    </div>
+                  </a>
+                  <form action={deleteBill}>
+                    <input type="hidden" name="id" value={b.id} />
+                    <button type="submit" title="Delete this bill" style={{ background: 'none', border: '1px solid #eadfd5', borderRadius: 8, color: '#c0392b', cursor: 'pointer', padding: '6px 10px', fontSize: 14 }}>🗑️</button>
+                  </form>
+                </div>
               );
             })}
           </div>
