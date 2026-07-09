@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/server';
+import DownloadButton from '../../components/DownloadButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,25 +20,12 @@ const BOTS = {
   mortgage: { name: 'Morgan', emoji: '🏦', role: 'your home-loan analyst' },
   personal_loan: { name: 'Penny', emoji: '💵', role: 'your loan analyst' },
   credit_card: { name: 'Chip', emoji: '💳', role: 'your credit-card analyst' },
+  savings_account: { name: 'Nova', emoji: '💰', role: 'your savings analyst' },
+  term_deposit: { name: 'Terra', emoji: '🔒', role: 'your term-deposit analyst' },
   streaming: { name: 'Reel', emoji: '📺', role: 'your streaming analyst' },
   software: { name: 'Byte', emoji: '💻', role: 'your software analyst' },
   membership: { name: 'Max', emoji: '🎟️', role: 'your membership analyst' },
   other: { name: 'Savvy', emoji: '📄', role: 'your bill analyst' },
-};
-
-const ENERGY = { label: 'Energy Made Easy — the Government tool that compares every retailer, free', url: 'https://www.energymadeeasy.gov.au' };
-const TELCO = { label: 'MoneySmart — choosing a phone & internet plan', url: 'https://moneysmart.gov.au/student-life-and-money/choosing-a-mobile-phone-plan' };
-const COMPARE = {
-  electricity: ENERGY, gas: ENERGY, solar: ENERGY, ev_charging: ENERGY,
-  water: { label: 'MoneySmart — ways to save on energy & utility costs', url: 'https://moneysmart.gov.au/budgeting/ways-to-save-on-energy-costs' },
-  internet: TELCO, mobile: TELCO, phone: TELCO,
-  home_insurance: { label: 'MoneySmart — home insurance', url: 'https://moneysmart.gov.au/home-insurance' },
-  car_insurance: { label: 'MoneySmart — car insurance', url: 'https://moneysmart.gov.au/car-insurance' },
-  landlord_insurance: { label: 'MoneySmart — home insurance', url: 'https://moneysmart.gov.au/home-insurance' },
-  health_insurance: { label: 'privatehealth.gov.au — the Government tool that compares every health policy', url: 'https://www.privatehealth.gov.au' },
-  mortgage: { label: 'MoneySmart — home loans & mortgage switching calculator', url: 'https://moneysmart.gov.au/home-loans' },
-  personal_loan: { label: 'MoneySmart — managing loans & debt', url: 'https://moneysmart.gov.au/managing-debt' },
-  credit_card: { label: 'MoneySmart — credit cards', url: 'https://moneysmart.gov.au/credit-cards' },
 };
 
 const TIPS = [
@@ -61,25 +49,31 @@ export default async function Report({ params }) {
   if (!a) return <p>Report not found.</p>;
   const bill = a.bills;
   const bot = BOTS[bill?.category] || BOTS.other;
-  const compare = COMPARE[bill?.category];
+  const isDeposit = ['savings_account', 'term_deposit'].includes(bill?.category);
 
   const card = { background: '#fff', border: '1px solid #eadfd5', borderRadius: 14, padding: 22, marginBottom: 16 };
   const h3 = { margin: '0 0 10px', fontSize: 17 };
 
   return (
     <div>
+      <style>{`@media print { .no-print { display: none !important; } a { text-decoration: none !important; color: #241a12 !important; } }`}</style>
+
       <div style={{ background: 'linear-gradient(135deg,#ea6a1f,#c14f0a)', color: '#fff', borderRadius: 16, padding: '22px 26px', marginBottom: 18, display: 'flex', alignItems: 'center', gap: 16 }}>
         <div style={{ fontSize: 44 }}>{bot.emoji}</div>
         <div>
           <div style={{ fontSize: 14, opacity: 0.9 }}>Hi, I'm {bot.name} — {bot.role}.</div>
           <div style={{ fontSize: 22, fontWeight: 800 }}>{bill?.provider_name || 'Your bill'}</div>
-          <div style={{ fontSize: 13, opacity: 0.9 }}>Here's what I found in your {bill?.category?.replace('_', ' ')} bill.</div>
+          <div style={{ fontSize: 13, opacity: 0.9 }}>Here's what I found in your {bill?.category?.replace('_', ' ')} statement.</div>
         </div>
+      </div>
+
+      <div className="no-print" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 14 }}>
+        <DownloadButton />
       </div>
 
       {bill?.confidence != null && bill.confidence < 0.7 && (
         <p style={{ background: '#fff6e5', border: '1px solid #f0c36d', borderRadius: 10, padding: 12, fontSize: 14 }}>
-          A few details were hard to read — please double-check figures against your original bill.
+          A few details were hard to read — please double-check figures against your original statement.
         </p>
       )}
 
@@ -99,13 +93,13 @@ export default async function Report({ params }) {
 
       {a.annual_estimate && (
         <div style={{ ...card, background: '#fdf6ef', borderColor: '#ea6a1f' }}><h3 style={h3}>📅 Yearly estimate</h3>
-          <p style={{ fontSize: 30, fontWeight: 800, margin: 0 }}>${Number(a.annual_estimate).toFixed(0)}<span style={{ fontSize: 14, fontWeight: 400, color: '#6e6058' }}> /year if this bill is typical</span></p>
+          <p style={{ fontSize: 30, fontWeight: 800, margin: 0 }}>${Number(a.annual_estimate).toFixed(0)}<span style={{ fontSize: 14, fontWeight: 400, color: '#6e6058' }}> {isDeposit ? '/year interest or value, if typical' : '/year if this bill is typical'}</span></p>
         </div>
       )}
 
       {a.savings_opps?.length > 0 && (
         <div style={{ ...card, background: 'linear-gradient(135deg,#eafaf7,#d7f2ec)', borderColor: '#1f9d8b' }}>
-          <h3 style={h3}>💰 Potential savings opportunities</h3>
+          <h3 style={h3}>💰 {isDeposit ? 'Ways you might do better' : 'Potential savings opportunities'}</h3>
           <p style={{ fontSize: 12, color: '#4a6b64', marginTop: 0 }}>General information only — not guaranteed, not a recommendation. You decide.</p>
           {a.savings_opps.map((s, i) => (
             <div key={i} style={{ background: '#fff', borderRadius: 10, padding: 14, marginBottom: 10 }}>
@@ -117,20 +111,8 @@ export default async function Report({ params }) {
         </div>
       )}
 
-      {compare && (
-        <div style={{ ...card, borderColor: '#1f9d8b' }}>
-          <h3 style={h3}>🔍 Compare &amp; switch</h3>
-          <p style={{ fontSize: 13, color: '#6e6058', marginTop: 0 }}>Want to check if there's a cheaper option? This free, independent resource compares providers with no commissions and no bias:</p>
-          <a href={compare.url} target="_blank" rel="noopener noreferrer"
-            style={{ display: 'inline-block', background: '#1f9d8b', color: '#fff', padding: '11px 20px', borderRadius: 999, textDecoration: 'none', fontWeight: 700 }}>
-            {compare.label} ↗
-          </a>
-          <p style={{ fontSize: 12, color: '#6e6058', marginTop: 12 }}>BillSavvy AI does not recommend any specific provider or product and does not receive commissions from these links. They are independent public resources. The decision is yours.</p>
-        </div>
-      )}
-
       <div style={{ ...card, borderColor: '#ea6a1f' }}>
-        <h3 style={h3}>💪 How to negotiate a better deal</h3>
+        <h3 style={h3}>💪 {isDeposit ? 'How to get a better rate' : 'How to negotiate a better deal'}</h3>
         <p style={{ fontSize: 13, color: '#6e6058', marginTop: 0 }}>General suggestions you may choose to use when you contact your provider. This is general information, not advice — the decision is yours.</p>
         <ul style={{ margin: '0 0 14px', paddingLeft: 20 }}>
           {TIPS.map((t, i) => <li key={i} style={{ marginBottom: 6 }}>{t}</li>)}
@@ -154,10 +136,13 @@ export default async function Report({ params }) {
         {['home_insurance','car_insurance','health_insurance','landlord_insurance'].includes(bill?.category) && (
           <p style={{ margin: '0 0 8px' }}>This is not insurance advice and does not consider your personal objectives, financial situation or needs. BillSavvy AI does not hold an Australian Financial Services Licence. Read the relevant Product Disclosure Statement before making any decision.</p>
         )}
+        {isDeposit && (
+          <p style={{ margin: '0 0 8px' }}>This is not financial product advice and does not consider your personal objectives, financial situation or needs. BillSavvy AI does not hold an Australian Financial Services Licence and does not recommend any specific savings account or term deposit. Interest rates change frequently — always confirm current rates and terms with the provider and read the relevant Product Disclosure Statement or Target Market Determination before making any decision.</p>
+        )}
         <p style={{ margin: 0 }}>Report generated by AI on {new Date(a.created_at).toLocaleDateString('en-AU')} · Policy version {a.disclaimer_version}. BillSavvy AI is not a financial adviser, mortgage broker, insurance adviser, credit provider or legal adviser.</p>
       </div>
 
-      <a href="/dashboard" style={{ color: '#ea6a1f', fontWeight: 700 }}>← Back to dashboard</a>
+      <a className="no-print" href="/dashboard" style={{ color: '#ea6a1f', fontWeight: 700 }}>← Back to dashboard</a>
     </div>
   );
 }
