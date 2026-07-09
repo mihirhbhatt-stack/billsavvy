@@ -49,37 +49,40 @@ router.push(`/report/${json.analysis_id}`);
 }
 
 return (
-<div style={{ maxWidth: 720, margin: '20px auto' }}>
-<h1 style={{ textAlign: 'center' }}>What would you like to check?</h1>
-<p style={{ textAlign: 'center', color: '#6e6058' }}>Pick a category for a savings tip, then upload the bill or statement. Our AI reads it automatically.</p>
+<div style={{ maxWidth: 740, margin: '10px auto' }}>
+<div style={{ textAlign: 'center', marginBottom: 22 }}>
+<h1 style={{ margin: '0 0 6px', fontSize: 28 }}>What would you like to check? 🔍</h1>
+<p style={{ color: '#6e6058', margin: 0, fontSize: 15 }}>Pick a category for a savings tip, then upload the bill or statement. Our AI reads it automatically — you stay in control.</p>
+</div>
 
-<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 12, margin: '20px 0' }}>
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(210px,1fr))', gap: 14, margin: '20px 0' }}>
 {CATS.map((c) => (
 <button key={c.key} onClick={() => setActive(active === c.key ? null : c.key)} type="button"
-style={{ textAlign: 'left', cursor: 'pointer', background: active === c.key ? '#fdeede' : '#fff', border: active === c.key ? '2px solid #ea6a1f' : '1px solid #eadfd5', borderRadius: 14, padding: 16 }}>
-<div style={{ fontSize: 26 }}>{c.emoji}</div>
-<div style={{ fontWeight: 700, marginTop: 4 }}>{c.label}</div>
-<div style={{ fontSize: 12, color: '#6e6058' }}>{c.sub}</div>
+style={{ textAlign: 'left', cursor: 'pointer', background: active === c.key ? 'linear-gradient(135deg,#fff,#fdeede)' : '#fff', border: active === c.key ? '2px solid #ea6a1f' : '1px solid #f0e7dc', borderRadius: 16, padding: 18, boxShadow: active === c.key ? '0 8px 22px rgba(234,106,31,0.16)' : '0 2px 10px rgba(36,26,18,0.05)' }}>
+<div style={{ fontSize: 30, width: 50, height: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fdf6ef', borderRadius: 14 }}>{c.emoji}</div>
+<div style={{ fontWeight: 800, marginTop: 10, fontSize: 15.5 }}>{c.label}</div>
+<div style={{ fontSize: 12, color: '#6e6058', marginTop: 2 }}>{c.sub}</div>
 </button>
 ))}
 </div>
 
 {active && (
-<div style={{ background: 'linear-gradient(135deg,#1f9d8b,#0f6f5c)', color: '#fff', borderRadius: 14, padding: '16px 20px', marginBottom: 18 }}>
-<div style={{ fontWeight: 700, marginBottom: 4 }}>💡 A little tip for you</div>
-<div style={{ fontSize: 14 }}>{CATS.find((c) => c.key === active).tip}</div>
+<div style={{ background: 'linear-gradient(135deg,#1f9d8b,#0f6f5c)', color: '#fff', borderRadius: 16, padding: '18px 22px', marginBottom: 20, boxShadow: '0 8px 22px rgba(31,157,139,0.22)' }}>
+<div style={{ fontWeight: 800, marginBottom: 4 }}>💡 A little tip for you</div>
+<div style={{ fontSize: 14.5, lineHeight: 1.5 }}>{CATS.find((c) => c.key === active).tip}</div>
 </div>
 )}
 
-<form onSubmit={go} style={{ textAlign: 'center', background: '#fff', border: '1px solid #eadfd5', borderRadius: 14, padding: 24 }}>
-<p style={{ color: '#6e6058', marginTop: 0 }}>PDF, JPEG or PNG · max 20 MB · analysed in about a minute</p>
+<form onSubmit={go} style={{ textAlign: 'center', background: '#fff', border: '2px dashed #ea6a1f', borderRadius: 18, padding: 30, boxShadow: '0 6px 22px rgba(234,106,31,0.10)' }}>
+<div style={{ fontSize: 40, marginBottom: 6 }}>📄</div>
+<p style={{ color: '#6e6058', marginTop: 0, fontWeight: 600 }}>PDF, JPEG or PNG · max 20 MB · analysed in about a minute</p>
 <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => setFile(e.target.files[0])} style={{ display: 'block', margin: '16px auto' }} />
 <button disabled={!file || busy} type="submit"
-style={{ background: file && !busy ? '#ea6a1f' : '#d5c9be', color: '#fff', border: 0, padding: '12px 28px', borderRadius: 999, fontWeight: 700, fontSize: 16, cursor: file && !busy ? 'pointer' : 'not-allowed' }}>
+style={{ background: file && !busy ? 'linear-gradient(135deg,#ea6a1f,#c14f0a)' : '#d5c9be', color: '#fff', border: 0, padding: '13px 32px', borderRadius: 999, fontWeight: 700, fontSize: 16, cursor: file && !busy ? 'pointer' : 'not-allowed', boxShadow: file && !busy ? '0 6px 16px rgba(234,106,31,0.30)' : 'none' }}>
 {busy ? 'Working...' : 'Analyse my bill'}
 </button>
-{busy && <p style={{ color: '#1f9d8b', fontWeight: 600, minHeight: 22 }}>{LOADING_MSGS[msgI]}</p>}
-{err && <p style={{ color: '#c0392b' }}>{err}</p>}
+{busy && <p style={{ color: '#1f9d8b', fontWeight: 700, minHeight: 22, marginBottom: 0 }}>{LOADING_MSGS[msgI]}</p>}
+{err && <p style={{ color: '#c0392b', marginBottom: 0 }}>{err}</p>}
 </form>
 </div>
 );
