@@ -9,16 +9,16 @@ const CHIPS = [
 ];
 
 const STEPS = [
-  { n: 1, e: '📤', c: '#ea6a1f', bg: 'linear-gradient(160deg,#fff 0%,#fff0e0 100%)', t: 'Upload your bill', d: 'Snap a photo or upload a PDF. Energy, internet, mobile, insurance, loans, savings — we read them all.' },
-  { n: 2, e: '🤖', c: '#7c5cff', bg: 'linear-gradient(160deg,#fff 0%,#efeaff 100%)', t: 'AI breaks it down', d: 'Every charge explained in plain English: what you pay, why it changed, and your real yearly cost.' },
-  { n: 3, e: '🤝', c: '#1f9d8b', bg: 'linear-gradient(160deg,#fff 0%,#e4f6f1 100%)', t: 'Negotiate & save', d: 'We give you the number to call, who to ask for, and exactly what to say. You stay in control.' },
+  { n: 1, e: '📤', g: 'linear-gradient(135deg,#ffb04d,#ea6a1f,#c14f0a)', sh: 'rgba(234,106,31,0.34)', t: 'Upload your bill', d: 'Snap a photo or upload a PDF. Energy, internet, mobile, insurance, loans, savings — we read them all.' },
+  { n: 2, e: '🤖', g: 'linear-gradient(135deg,#a68bff,#7c5cff,#5b3ee0)', sh: 'rgba(124,92,255,0.34)', t: 'AI breaks it down', d: 'Every charge explained in plain English: what you pay, why it changed, and your real yearly cost.' },
+  { n: 3, e: '🤝', g: 'linear-gradient(135deg,#33dcb2,#1f9d8b,#0f6f5c)', sh: 'rgba(31,157,139,0.34)', t: 'Negotiate & save', d: 'We give you the number to call, who to ask for, and exactly what to say. You stay in control.' },
 ];
 
 const FEATURES = [
-  { e: '🔍', c: '#ea6a1f', bg: '#fff3e8', t: 'Plain-English breakdown', d: 'Every charge explained simply — what you pay, why it changed, and your real yearly cost.' },
-  { e: '📞', c: '#7c5cff', bg: '#f1ecff', t: 'Who to call & what to say', d: 'The right number, the team to ask for, and a professional script to negotiate a better deal.' },
-  { e: '💬', c: '#1f9d8b', bg: '#e7f7f2', t: 'Ask our AI helper', d: 'A friendly assistant answers questions about your own bill, in plain words, any time.' },
-  { e: '🔒', c: '#e0567a', bg: '#fdecf1', t: 'Private & secure', d: 'Your documents are encrypted and only ever seen by you. We never sell your data.' },
+  { e: '🔍', g: 'linear-gradient(135deg,#ffb04d,#ea6a1f,#c14f0a)', sh: 'rgba(234,106,31,0.32)', t: 'Plain-English breakdown', d: 'Every charge explained simply — what you pay, why it changed, and your real yearly cost.' },
+  { e: '📞', g: 'linear-gradient(135deg,#a68bff,#7c5cff,#5b3ee0)', sh: 'rgba(124,92,255,0.32)', t: 'Who to call & what to say', d: 'The right number, the team to ask for, and a professional script to negotiate a better deal.' },
+  { e: '💬', g: 'linear-gradient(135deg,#33dcb2,#1f9d8b,#0f6f5c)', sh: 'rgba(31,157,139,0.32)', t: 'Ask our AI helper', d: 'A friendly assistant answers questions about your own bill, in plain words, any time.' },
+  { e: '🔒', g: 'linear-gradient(135deg,#ff97b6,#e0567a,#c23a5f)', sh: 'rgba(224,86,122,0.32)', t: 'Private & secure', d: 'Your documents are encrypted and only ever seen by you. We never sell your data.' },
 ];
 
 const TRUST = [
@@ -33,6 +33,8 @@ export default async function Home() {
   if (user) redirect('/dashboard');
 
   const h2 = { textAlign: 'center', fontSize: 'clamp(24px,5vw,32px)', margin: '0 0 6px' };
+  const chip = { display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.22)', color: '#fff', fontWeight: 700, fontSize: 12.5, padding: '5px 12px', borderRadius: 999, marginBottom: 12 };
+  const iconCircle = { fontSize: 26, width: 54, height: 54, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.24)', borderRadius: 16, marginBottom: 12, boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.35)' };
 
   return (
     <div>
@@ -69,13 +71,11 @@ export default async function Home() {
         <p style={{ textAlign: 'center', color: '#6e6058', margin: '0 auto 26px', maxWidth: 520 }}>Three simple steps — about a minute from upload to savings.</p>
         <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
           {STEPS.map((s) => (
-            <div key={s.n} className="bs-card" style={{ flex: 1, minWidth: 230, background: s.bg, borderRadius: 20, padding: 26, border: `1px solid ${s.c}33`, borderTop: `5px solid ${s.c}`, boxShadow: `0 8px 24px ${s.c}1f` }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-                <span style={{ width: 46, height: 46, borderRadius: 14, background: s.c, color: '#fff', fontWeight: 800, fontSize: 22, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 6px 14px ${s.c}66` }}>{s.e}</span>
-                <span style={{ fontSize: 13, fontWeight: 800, color: s.c, letterSpacing: 1, textTransform: 'uppercase' }}>Step {s.n}</span>
-              </div>
-              <h3 style={{ margin: '0 0 6px', fontSize: 19 }}>{s.t}</h3>
-              <p style={{ color: '#5a5048', margin: 0 }}>{s.d}</p>
+            <div key={s.n} className="bs-card" style={{ flex: 1, minWidth: 230, background: s.g, color: '#fff', borderRadius: 20, padding: 26, boxShadow: `0 14px 32px ${s.sh}` }}>
+              <div style={iconCircle}>{s.e}</div>
+              <span style={chip}>STEP {s.n}</span>
+              <h3 style={{ margin: '4px 0 6px', fontSize: 20, color: '#fff' }}>{s.t}</h3>
+              <p style={{ color: 'rgba(255,255,255,0.92)', margin: 0, lineHeight: 1.5 }}>{s.d}</p>
             </div>
           ))}
         </div>
@@ -86,10 +86,10 @@ export default async function Home() {
         <h2 style={{ ...h2, marginBottom: 26 }}>Why households love BillSavvy</h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(230px,1fr))', gap: 16 }}>
           {FEATURES.map((f) => (
-            <div key={f.t} className="bs-card" style={{ background: `linear-gradient(160deg,#fff 55%,${f.bg} 100%)`, borderRadius: 18, padding: 24, border: `1px solid ${f.c}2e`, borderTop: `4px solid ${f.c}`, boxShadow: '0 4px 18px rgba(36,26,18,0.06)' }}>
-              <div style={{ fontSize: 30, width: 54, height: 54, display: 'flex', alignItems: 'center', justifyContent: 'center', background: f.bg, borderRadius: 14, marginBottom: 12 }}>{f.e}</div>
-              <h3 style={{ margin: '0 0 6px' }}>{f.t}</h3>
-              <p style={{ color: '#6e6058', margin: 0 }}>{f.d}</p>
+            <div key={f.t} className="bs-card" style={{ background: f.g, color: '#fff', borderRadius: 18, padding: 24, boxShadow: `0 12px 28px ${f.sh}` }}>
+              <div style={iconCircle}>{f.e}</div>
+              <h3 style={{ margin: '0 0 6px', color: '#fff' }}>{f.t}</h3>
+              <p style={{ color: 'rgba(255,255,255,0.92)', margin: 0, lineHeight: 1.5 }}>{f.d}</p>
             </div>
           ))}
         </div>
