@@ -8,6 +8,7 @@ export const maxDuration = 120;
 const MODEL = 'claude-sonnet-5';
 const REQUIRED_CONSENTS = ['terms', 'privacy', 'ai_processing', 'document_processing'];
 const MIME_OK = ['application/pdf', 'image/jpeg', 'image/png'];
+const FREE_LIMIT = 999; // testing phase: effectively unlimited for everyone
 
 function parseJson(text) {
   const m = text.match(/\{[\s\S]*\}/);
@@ -27,8 +28,8 @@ async function emailReport(origin, email, provider, summary, analysisId) {
         to: [email],
         subject: 'Your BillSavvy report: ' + (provider || 'your bill'),
         html: '<h2>Your bill report is ready</h2><p>' + summary + '</p>' +
-              '<p><a href="' + origin + '/report/' + analysisId + '" style="background:#ea6a1f;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;display:inline-block">View full report</a></p>' +
-              '<hr><p style="font-size:12px;color:#888">' + DISCLAIMER + '</p>',
+          '<p><a href="' + origin + '/report/' + analysisId + '" style="background:#ea6a1f;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;display:inline-block">View full report</a></p>' +
+          '<hr><p style="font-size:12px;color:#888">' + DISCLAIMER + '</p>',
       }),
     });
   } catch (e) { /* email best-effort */ }
@@ -47,7 +48,7 @@ export async function POST(request) {
 
     const { data: sub } = await supabase.from('subscriptions').select('plan').maybeSingle();
     const { count } = await supabase.from('bill_analysis').select('id', { count: 'exact', head: true });
-    if ((!sub || sub.plan === 'free') && (count || 0) >= 1)
+    if ((!sub || sub.plan === 'free') && (count || 0) >= FREE_LIMIT)
       return NextResponse.json({ error: 'Your free analysis is used. Premium is coming very soon!' }, { status: 402 });
 
     const form = await request.formData();
