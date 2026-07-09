@@ -36,7 +36,20 @@ async function deleteBill(formData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
-  await supabase.from('bills').delete().eq('id', formData.get('id'));
+  const id = formData.get('id');
+  // Full erasure: remove the stored file, then delete the document
+  // (which cascades to delete the bill and its analysis).
+  const { data: bill } = await supabase.from('bills').select('document_id').eq('id', id).single();
+  const docId = bill?.document_id;
+  if (docId) {
+    const { data: doc } = await supabase.from('documents').select('storage_path').eq('id', docId).single();
+    if (doc?.storage_path) {
+      await supabase.storage.from('documents').remove([doc.storage_path]);
+    }
+    await supabase.from('documents').delete().eq('id', docId);
+  } else {
+    await supabase.from('bills').delete().eq('id', id);
+  }
   revalidatePath('/dashboard');
 }
 
@@ -131,7 +144,7 @@ export default async function Dashboard() {
                   </a>
                   <form action={deleteBill} style={{ margin: 0 }}>
                     <input type="hidden" name="id" value={b.id} />
-                    <button type="submit" title="Delete this bill" style={{ background: 'none', border: '1px solid #f0e7dc', borderRadius: 10, color: '#c0392b', cursor: 'pointer', padding: '8px 11px', fontSize: 14 }}>🗑️</button>
+                    <button type="submit" title="Delete this bill and its file" style={{ background: 'none', border: '1px solid #f0e7dc', borderRadius: 10, color: '#c0392b', cursor: 'pointer', padding: '8px 11px', fontSize: 14 }}>🗑️</button>
                   </form>
                 </div>
               );
