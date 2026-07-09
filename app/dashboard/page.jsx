@@ -44,18 +44,21 @@ export default async function Dashboard() {
   if (!user) redirect('/login');
 
   const { data: profile } = await supabase.from('profiles').select('full_name').maybeSingle();
-  const { data: bills } = await supabase
+  const { data: billsData } = await supabase
     .from('bills')
-    .select('id, category, provider_name, amount_due, due_date, created_at, bill_analysis(id, annual_estimate)')
+    .select('id, category, provider_name, amount_due, due_date, created_at')
     .order('created_at', { ascending: false });
+  const { data: analysesData } = await supabase
+    .from('bill_analysis')
+    .select('id, bill_id, annual_estimate');
 
-  const rows = bills || [];
-  const analysed = rows.filter((b) => b.bill_analysis?.length);
+  const byBill = {};
+  for (const a of (analysesData || [])) { if (!byBill[a.bill_id]) byBill[a.bill_id] = a; }
+  const rows = (billsData || []).map((b) => ({ ...b, analysis: byBill[b.id] || null }));
+
+  const analysed = rows.filter((b) => b.analysis);
   let annualTotal = 0;
-  for (const b of analysed) {
-    const a = b.bill_analysis[0];
-    if (a.annual_estimate) annualTotal += Number(a.annual_estimate);
-  }
+  for (const b of analysed) { if (b.analysis.annual_estimate) annualTotal += Number(b.analysis.annual_estimate); }
 
   let name = profile?.full_name;
   if (!name && user.email) {
@@ -96,11 +99,10 @@ export default async function Dashboard() {
           <div key={g.title} style={{ marginBottom: 22 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: '#6e6058', textTransform: 'uppercase', letterSpacing: 0.5, margin: '4px 0 8px' }}>{g.title}</div>
             {items.map((b) => {
-              const done = b.bill_analysis?.length;
-              const est = done ? b.bill_analysis[0].annual_estimate : null;
+              const est = b.analysis ? b.analysis.annual_estimate : null;
               return (
                 <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', background: '#fff', border: '1px solid #eadfd5', borderRadius: 12, marginBottom: 10 }}>
-                  <a href={done ? `/report/${b.bill_analysis[0].id}` : '/upload'} style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1, textDecoration: 'none', color: '#241a12' }}>
+                  <a href={b.analysis ? `/report/${b.analysis.id}` : '/upload'} style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1, textDecoration: 'none', color: '#241a12' }}>
                     <span style={{ fontSize: 26 }}>{ICONS[b.category] || ICONS.other}</span>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontWeight: 700 }}>{b.provider_name || b.category.replace('_', ' ')}</div>
@@ -108,7 +110,7 @@ export default async function Dashboard() {
                     </div>
                     <div style={{ textAlign: 'right' }}>
                       <div style={{ fontWeight: 700 }}>{b.amount_due ? `$${Number(b.amount_due).toFixed(2)}` : ''}</div>
-                      <div style={{ fontSize: 12, color: done ? '#1f9d8b' : '#c98a00' }}>{done ? (est ? `~$${Number(est).toFixed(0)}/yr →` : 'View report →') : 'Re-upload to analyse'}</div>
+                      <div style={{ fontSize: 12, color: b.analysis ? '#1f9d8b' : '#c98a00' }}>{b.analysis ? (est ? `~$${Number(est).toFixed(0)}/yr →` : 'View report →') : 'Re-upload to analyse'}</div>
                     </div>
                   </a>
                   <form action={deleteBill}>
