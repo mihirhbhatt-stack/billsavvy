@@ -9,17 +9,19 @@ const ICONS = {
   internet: '🌐', mobile: '📱', phone: '☎️',
   home_insurance: '🏠', car_insurance: '🚗', health_insurance: '🏥', landlord_insurance: '🔑',
   mortgage: '🏦', personal_loan: '💵', credit_card: '💳',
+  savings_account: '💰', term_deposit: '🔒',
   streaming: '📺', software: '💻', membership: '🎟️', other: '📄',
 };
 
 const GROUPS = [
-  { title: 'Finance', cats: ['mortgage', 'personal_loan', 'credit_card'] },
-  { title: 'General insurance', cats: ['home_insurance', 'car_insurance', 'landlord_insurance'] },
-  { title: 'Health insurance', cats: ['health_insurance'] },
-  { title: 'Energy & utilities', cats: ['electricity', 'gas', 'water', 'solar', 'ev_charging'] },
-  { title: 'Mobile & internet', cats: ['internet', 'mobile', 'phone'] },
-  { title: 'Subscriptions', cats: ['streaming', 'software', 'membership'] },
-  { title: 'Other', cats: ['other'] },
+  { title: 'Finance', color: '#7c5cff', cats: ['mortgage', 'personal_loan', 'credit_card'] },
+  { title: 'Savings & deposits', color: '#1f9d8b', cats: ['savings_account', 'term_deposit'] },
+  { title: 'General insurance', color: '#e0567a', cats: ['home_insurance', 'car_insurance', 'landlord_insurance'] },
+  { title: 'Health insurance', color: '#2ba7c4', cats: ['health_insurance'] },
+  { title: 'Energy & utilities', color: '#ea6a1f', cats: ['electricity', 'gas', 'water', 'solar', 'ev_charging'] },
+  { title: 'Mobile & internet', color: '#3a86ff', cats: ['internet', 'mobile', 'phone'] },
+  { title: 'Subscriptions', color: '#b5179e', cats: ['streaming', 'software', 'membership'] },
+  { title: 'Other', color: '#8a7d70', cats: ['other'] },
 ];
 
 function greeting() {
@@ -67,28 +69,40 @@ export default async function Dashboard() {
   }
   name = name || 'there';
 
-  const stat = { flex: 1, minWidth: 160, background: '#fff', border: '1px solid #eadfd5', borderRadius: 14, padding: '18px 20px' };
-  const statNum = { fontSize: 26, fontWeight: 800, margin: '4px 0 0' };
+  const card = { background: '#fff', borderRadius: 16, padding: '20px 22px', boxShadow: '0 4px 18px rgba(36,26,18,0.06)', border: '1px solid #f0e7dc' };
+  const statNum = { fontSize: 30, fontWeight: 800, margin: '6px 0 0', letterSpacing: '-0.02em' };
 
   return (
     <div>
-      <h1 style={{ marginBottom: 4 }}>{greeting()}, {name} 👋</h1>
-      <p style={{ color: '#6e6058', marginTop: 0 }}>Here is your household expense overview.</p>
-
-      <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', margin: '18px 0 28px' }}>
-        <div style={stat}><span style={{ fontSize: 13, color: '#6e6058' }}>Bills analysed</span><p style={statNum}>{analysed.length}</p></div>
-        <div style={stat}><span style={{ fontSize: 13, color: '#6e6058' }}>Estimated yearly spend</span><p style={statNum}>${annualTotal.toFixed(0)}</p></div>
+      <div style={{ background: 'linear-gradient(135deg,#ea6a1f 0%,#c14f0a 100%)', color: '#fff', borderRadius: 20, padding: '26px 28px', boxShadow: '0 10px 30px rgba(234,106,31,0.28)', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', right: -30, top: -30, width: 160, height: 160, borderRadius: '50%', background: 'rgba(255,255,255,0.10)' }} />
+        <div style={{ position: 'absolute', right: 60, bottom: -50, width: 120, height: 120, borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
+        <h1 style={{ margin: 0, fontSize: 28 }}>{greeting()}, {name} 👋</h1>
+        <p style={{ margin: '6px 0 0', fontSize: 15, opacity: 0.95, maxWidth: 560 }}>Here's your household money overview. We'll help you understand each bill and negotiate a better deal — you always stay in control.</p>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-        <h2 style={{ margin: 0 }}>Your bills</h2>
-        <a href="/upload" style={{ background: '#ea6a1f', color: '#fff', padding: '9px 20px', borderRadius: 999, textDecoration: 'none', fontWeight: 700, fontSize: 14 }}>+ Upload a bill</a>
+      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', margin: '18px 0 26px' }}>
+        <div style={{ ...card, flex: 1, minWidth: 180, borderTop: '3px solid #1f9d8b' }}>
+          <span style={{ fontSize: 13, color: '#6e6058', fontWeight: 600 }}>📄 Bills analysed</span>
+          <p style={{ ...statNum, color: '#1f9d8b' }}>{analysed.length}</p>
+        </div>
+        <div style={{ ...card, flex: 1, minWidth: 180, borderTop: '3px solid #ea6a1f' }}>
+          <span style={{ fontSize: 13, color: '#6e6058', fontWeight: 600 }}>💸 Estimated yearly spend</span>
+          <p style={{ ...statNum, color: '#ea6a1f' }}>${annualTotal.toLocaleString('en-AU')}</p>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+        <h2 style={{ margin: 0, fontSize: 22 }}>Your bills</h2>
+        <a href="/upload" style={{ background: 'linear-gradient(135deg,#ea6a1f,#c14f0a)', color: '#fff', padding: '10px 22px', borderRadius: 999, textDecoration: 'none', fontWeight: 700, fontSize: 14, boxShadow: '0 4px 12px rgba(234,106,31,0.3)' }}>+ Upload a bill</a>
       </div>
 
       {rows.length === 0 && (
-        <div style={{ background: '#fdeede', border: '2px dashed #ea6a1f', borderRadius: 14, padding: 32, textAlign: 'center' }}>
-          <p style={{ fontSize: 17, fontWeight: 700 }}>No bills yet - your first analysis is free.</p>
-          <a href="/upload" style={{ background: '#ea6a1f', color: '#fff', padding: '10px 22px', borderRadius: 999, textDecoration: 'none', fontWeight: 700 }}>Upload your first bill</a>
+        <div style={{ background: 'linear-gradient(135deg,#fff,#fdeede)', border: '2px dashed #ea6a1f', borderRadius: 18, padding: 40, textAlign: 'center', boxShadow: '0 4px 18px rgba(234,106,31,0.10)' }}>
+          <div style={{ fontSize: 44, marginBottom: 6 }}>📥</div>
+          <p style={{ fontSize: 18, fontWeight: 800, margin: '0 0 4px' }}>Let's find you some savings</p>
+          <p style={{ color: '#6e6058', margin: '0 0 16px' }}>Upload your first bill and we'll show you how to negotiate a better deal. Your first analysis is free.</p>
+          <a href="/upload" style={{ background: 'linear-gradient(135deg,#ea6a1f,#c14f0a)', color: '#fff', padding: '12px 26px', borderRadius: 999, textDecoration: 'none', fontWeight: 700, boxShadow: '0 4px 12px rgba(234,106,31,0.3)' }}>Upload your first bill</a>
         </div>
       )}
 
@@ -96,26 +110,26 @@ export default async function Dashboard() {
         const items = rows.filter((b) => g.cats.includes(b.category));
         if (items.length === 0) return null;
         return (
-          <div key={g.title} style={{ marginBottom: 22 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#6e6058', textTransform: 'uppercase', letterSpacing: 0.5, margin: '4px 0 8px' }}>{g.title}</div>
+          <div key={g.title} style={{ marginBottom: 24 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12.5, fontWeight: 800, color: '#fff', textTransform: 'uppercase', letterSpacing: 0.5, margin: '4px 0 10px', background: g.color, padding: '5px 12px', borderRadius: 999 }}>{g.title}</div>
             {items.map((b) => {
               const est = b.analysis ? b.analysis.annual_estimate : null;
               return (
-                <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', background: '#fff', border: '1px solid #eadfd5', borderRadius: 12, marginBottom: 10 }}>
-                  <a href={b.analysis ? `/report/${b.analysis.id}` : '/upload'} style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1, textDecoration: 'none', color: '#241a12' }}>
-                    <span style={{ fontSize: 26 }}>{ICONS[b.category] || ICONS.other}</span>
+                <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 18px', background: '#fff', border: '1px solid #f0e7dc', borderRadius: 14, marginBottom: 10, boxShadow: '0 2px 10px rgba(36,26,18,0.05)' }}>
+                  <a className="bs-link" href={b.analysis ? `/report/${b.analysis.id}` : '/upload'} style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1, textDecoration: 'none', color: '#241a12' }}>
+                    <span style={{ fontSize: 28, width: 46, height: 46, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: '#fdf6ef', borderRadius: 12 }}>{ICONS[b.category] || ICONS.other}</span>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 700 }}>{b.provider_name || b.category.replace('_', ' ')}</div>
+                      <div style={{ fontWeight: 700, fontSize: 15.5 }}>{b.provider_name || b.category.replace('_', ' ')}</div>
                       <div style={{ fontSize: 13, color: '#6e6058', textTransform: 'capitalize' }}>{b.category.replace('_', ' ')}{b.due_date ? ` · due ${b.due_date}` : ''}</div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontWeight: 700 }}>{b.amount_due ? `$${Number(b.amount_due).toFixed(2)}` : ''}</div>
-                      <div style={{ fontSize: 12, color: b.analysis ? '#1f9d8b' : '#c98a00' }}>{b.analysis ? (est ? `~$${Number(est).toFixed(0)}/yr →` : 'View report →') : 'Re-upload to analyse'}</div>
+                      <div style={{ fontWeight: 800 }}>{b.amount_due ? `$${Number(b.amount_due).toFixed(2)}` : ''}</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: b.analysis ? '#1f9d8b' : '#c98a00' }}>{b.analysis ? (est ? `~$${Number(est).toFixed(0)}/yr →` : 'View report →') : 'Re-upload to analyse'}</div>
                     </div>
                   </a>
-                  <form action={deleteBill}>
+                  <form action={deleteBill} style={{ margin: 0 }}>
                     <input type="hidden" name="id" value={b.id} />
-                    <button type="submit" title="Delete this bill" style={{ background: 'none', border: '1px solid #eadfd5', borderRadius: 8, color: '#c0392b', cursor: 'pointer', padding: '6px 10px', fontSize: 14 }}>🗑️</button>
+                    <button type="submit" title="Delete this bill" style={{ background: 'none', border: '1px solid #f0e7dc', borderRadius: 10, color: '#c0392b', cursor: 'pointer', padding: '8px 11px', fontSize: 14 }}>🗑️</button>
                   </form>
                 </div>
               );
