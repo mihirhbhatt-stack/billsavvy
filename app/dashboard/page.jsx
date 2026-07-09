@@ -46,19 +46,15 @@ export default async function Dashboard() {
   const { data: profile } = await supabase.from('profiles').select('full_name').maybeSingle();
   const { data: bills } = await supabase
     .from('bills')
-    .select('id, category, provider_name, amount_due, due_date, created_at, bill_analysis(id, annual_estimate, savings_opps)')
+    .select('id, category, provider_name, amount_due, due_date, created_at, bill_analysis(id, annual_estimate)')
     .order('created_at', { ascending: false });
 
   const rows = bills || [];
   const analysed = rows.filter((b) => b.bill_analysis?.length);
-  let annualTotal = 0, saveLo = 0, saveHi = 0;
+  let annualTotal = 0;
   for (const b of analysed) {
     const a = b.bill_analysis[0];
     if (a.annual_estimate) annualTotal += Number(a.annual_estimate);
-    for (const s of (a.savings_opps || [])) {
-      const r = s.indicative_range_aud_per_year;
-      if (Array.isArray(r)) { saveLo += Number(r[0]) || 0; saveHi += Number(r[1]) || 0; }
-    }
   }
 
   let name = profile?.full_name;
@@ -68,7 +64,7 @@ export default async function Dashboard() {
   }
   name = name || 'there';
 
-  const stat = { flex: 1, minWidth: 150, background: '#fff', border: '1px solid #eadfd5', borderRadius: 14, padding: '18px 20px' };
+  const stat = { flex: 1, minWidth: 160, background: '#fff', border: '1px solid #eadfd5', borderRadius: 14, padding: '18px 20px' };
   const statNum = { fontSize: 26, fontWeight: 800, margin: '4px 0 0' };
 
   return (
@@ -76,18 +72,9 @@ export default async function Dashboard() {
       <h1 style={{ marginBottom: 4 }}>{greeting()}, {name} 👋</h1>
       <p style={{ color: '#6e6058', marginTop: 0 }}>Here is your household expense overview.</p>
 
-      {saveHi > 0 && (
-        <div style={{ background: 'linear-gradient(135deg,#1f9d8b,#0f6f5c)', color: '#fff', borderRadius: 16, padding: '22px 26px', margin: '18px 0' }}>
-          <div style={{ fontSize: 15, opacity: 0.9 }}>💰 Potential savings spotted</div>
-          <div style={{ fontSize: 30, fontWeight: 800, margin: '4px 0' }}>Up to ${saveHi.toFixed(0)} a year</div>
-          <div style={{ fontSize: 14, opacity: 0.92 }}>Across {analysed.length} bill{analysed.length === 1 ? '' : 's'}. Open each report to see how — you stay in control.</div>
-        </div>
-      )}
-
       <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', margin: '18px 0 28px' }}>
         <div style={stat}><span style={{ fontSize: 13, color: '#6e6058' }}>Bills analysed</span><p style={statNum}>{analysed.length}</p></div>
         <div style={stat}><span style={{ fontSize: 13, color: '#6e6058' }}>Estimated yearly spend</span><p style={statNum}>${annualTotal.toFixed(0)}</p></div>
-        <div style={{ ...stat, borderColor: '#1f9d8b' }}><span style={{ fontSize: 13, color: '#6e6058' }}>Potential savings / yr</span><p style={{ ...statNum, color: '#1f9d8b' }}>{saveHi > 0 ? `$${saveLo.toFixed(0)}-$${saveHi.toFixed(0)}` : '-'}</p></div>
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
