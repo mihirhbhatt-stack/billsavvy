@@ -69,40 +69,42 @@ export default async function Dashboard() {
   }
   name = name || 'there';
 
-  const card = { background: '#fff', borderRadius: 16, padding: '20px 22px', boxShadow: '0 4px 18px rgba(36,26,18,0.06)', border: '1px solid #f0e7dc' };
-  const statNum = { fontSize: 30, fontWeight: 800, margin: '6px 0 0', letterSpacing: '-0.02em' };
+  const statBase = { flex: 1, minWidth: 190, borderRadius: 18, padding: '20px 22px', color: '#fff', position: 'relative', overflow: 'hidden' };
+  const statNum = { fontSize: 32, fontWeight: 800, margin: '6px 0 0', letterSpacing: '-0.02em' };
 
   return (
     <div>
-      <div style={{ background: 'linear-gradient(135deg,#ea6a1f 0%,#c14f0a 100%)', color: '#fff', borderRadius: 20, padding: '26px 28px', boxShadow: '0 10px 30px rgba(234,106,31,0.28)', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ position: 'relative', overflow: 'hidden', background: 'radial-gradient(circle at 85% 15%, #ff9a4d 0%, rgba(255,154,77,0) 55%), linear-gradient(135deg,#ea6a1f 0%,#c14f0a 100%)', color: '#fff', borderRadius: 22, padding: '26px 28px', boxShadow: '0 14px 34px rgba(234,106,31,0.28)' }}>
         <div style={{ position: 'absolute', right: -30, top: -30, width: 160, height: 160, borderRadius: '50%', background: 'rgba(255,255,255,0.10)' }} />
-        <div style={{ position: 'absolute', right: 60, bottom: -50, width: 120, height: 120, borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
-        <h1 style={{ margin: 0, fontSize: 28 }}>{greeting()}, {name} 👋</h1>
+        <div style={{ position: 'absolute', right: 70, bottom: -50, width: 120, height: 120, borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
+        <h1 style={{ margin: 0, fontSize: 'clamp(23px,5vw,30px)', color: '#fff' }}>{greeting()}, {name} 👋</h1>
         <p style={{ margin: '6px 0 0', fontSize: 15, opacity: 0.95, maxWidth: 560 }}>Here's your household money overview. We'll help you understand each bill and negotiate a better deal — you always stay in control.</p>
       </div>
 
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', margin: '18px 0 26px' }}>
-        <div style={{ ...card, flex: 1, minWidth: 180, borderTop: '3px solid #1f9d8b' }}>
-          <span style={{ fontSize: 13, color: '#6e6058', fontWeight: 600 }}>📄 Bills analysed</span>
-          <p style={{ ...statNum, color: '#1f9d8b' }}>{analysed.length}</p>
+        <div style={{ ...statBase, background: 'linear-gradient(135deg,#22c39f,#0f6f5c)', boxShadow: '0 10px 26px rgba(31,157,139,0.28)' }}>
+          <div style={{ position: 'absolute', right: -20, top: -20, width: 100, height: 100, borderRadius: '50%', background: 'rgba(255,255,255,0.12)' }} />
+          <span style={{ fontSize: 13.5, fontWeight: 700, opacity: 0.95 }}>📄 Bills analysed</span>
+          <p style={statNum}>{analysed.length}</p>
         </div>
-        <div style={{ ...card, flex: 1, minWidth: 180, borderTop: '3px solid #ea6a1f' }}>
-          <span style={{ fontSize: 13, color: '#6e6058', fontWeight: 600 }}>💸 Estimated yearly spend</span>
-          <p style={{ ...statNum, color: '#ea6a1f' }}>${annualTotal.toLocaleString('en-AU')}</p>
+        <div style={{ ...statBase, background: 'linear-gradient(135deg,#ff8a3d,#c14f0a)', boxShadow: '0 10px 26px rgba(234,106,31,0.28)' }}>
+          <div style={{ position: 'absolute', right: -20, top: -20, width: 100, height: 100, borderRadius: '50%', background: 'rgba(255,255,255,0.12)' }} />
+          <span style={{ fontSize: 13.5, fontWeight: 700, opacity: 0.95 }}>💸 Estimated yearly spend</span>
+          <p style={statNum}>${annualTotal.toLocaleString('en-AU')}</p>
         </div>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, gap: 10, flexWrap: 'wrap' }}>
         <h2 style={{ margin: 0, fontSize: 22 }}>Your bills</h2>
-        <a href="/upload" style={{ background: 'linear-gradient(135deg,#ea6a1f,#c14f0a)', color: '#fff', padding: '10px 22px', borderRadius: 999, textDecoration: 'none', fontWeight: 700, fontSize: 14, boxShadow: '0 4px 12px rgba(234,106,31,0.3)' }}>+ Upload a bill</a>
+        <a href="/upload" className="bs-link" style={{ background: 'linear-gradient(135deg,#ea6a1f,#c14f0a)', color: '#fff', padding: '10px 22px', borderRadius: 999, textDecoration: 'none', fontWeight: 700, fontSize: 14, boxShadow: '0 4px 12px rgba(234,106,31,0.3)' }}>+ Upload a bill</a>
       </div>
 
       {rows.length === 0 && (
         <div style={{ background: 'linear-gradient(135deg,#fff,#fdeede)', border: '2px dashed #ea6a1f', borderRadius: 18, padding: 40, textAlign: 'center', boxShadow: '0 4px 18px rgba(234,106,31,0.10)' }}>
-          <div style={{ fontSize: 44, marginBottom: 6 }}>📥</div>
+          <div style={{ fontSize: 46, marginBottom: 6 }}>📥</div>
           <p style={{ fontSize: 18, fontWeight: 800, margin: '0 0 4px' }}>Let's find you some savings</p>
           <p style={{ color: '#6e6058', margin: '0 0 16px' }}>Upload your first bill and we'll show you how to negotiate a better deal. Your first analysis is free.</p>
-          <a href="/upload" style={{ background: 'linear-gradient(135deg,#ea6a1f,#c14f0a)', color: '#fff', padding: '12px 26px', borderRadius: 999, textDecoration: 'none', fontWeight: 700, boxShadow: '0 4px 12px rgba(234,106,31,0.3)' }}>Upload your first bill</a>
+          <a href="/upload" className="bs-link" style={{ display: 'inline-block', background: 'linear-gradient(135deg,#ea6a1f,#c14f0a)', color: '#fff', padding: '12px 26px', borderRadius: 999, textDecoration: 'none', fontWeight: 700, boxShadow: '0 4px 12px rgba(234,106,31,0.3)' }}>Upload your first bill</a>
         </div>
       )}
 
@@ -111,13 +113,13 @@ export default async function Dashboard() {
         if (items.length === 0) return null;
         return (
           <div key={g.title} style={{ marginBottom: 24 }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12.5, fontWeight: 800, color: '#fff', textTransform: 'uppercase', letterSpacing: 0.5, margin: '4px 0 10px', background: g.color, padding: '5px 12px', borderRadius: 999 }}>{g.title}</div>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12.5, fontWeight: 800, color: '#fff', textTransform: 'uppercase', letterSpacing: 0.5, margin: '4px 0 10px', background: g.color, padding: '6px 14px', borderRadius: 999, boxShadow: `0 4px 12px ${g.color}55` }}>{g.title}</div>
             {items.map((b) => {
               const est = b.analysis ? b.analysis.annual_estimate : null;
               return (
-                <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 18px', background: '#fff', border: '1px solid #f0e7dc', borderRadius: 14, marginBottom: 10, boxShadow: '0 2px 10px rgba(36,26,18,0.05)' }}>
+                <div key={b.id} className="bs-card" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 18px', background: '#fff', border: '1px solid #f0e7dc', borderLeft: `5px solid ${g.color}`, borderRadius: 14, marginBottom: 10, boxShadow: '0 2px 10px rgba(36,26,18,0.05)' }}>
                   <a className="bs-link" href={b.analysis ? `/report/${b.analysis.id}` : '/upload'} style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1, textDecoration: 'none', color: '#241a12' }}>
-                    <span style={{ fontSize: 28, width: 46, height: 46, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: '#fdf6ef', borderRadius: 12 }}>{ICONS[b.category] || ICONS.other}</span>
+                    <span style={{ fontSize: 26, width: 48, height: 48, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: `${g.color}18`, borderRadius: 13 }}>{ICONS[b.category] || ICONS.other}</span>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontWeight: 700, fontSize: 15.5 }}>{b.provider_name || b.category.replace('_', ' ')}</div>
                       <div style={{ fontSize: 13, color: '#6e6058', textTransform: 'capitalize' }}>{b.category.replace('_', ' ')}{b.due_date ? ` · due ${b.due_date}` : ''}</div>
