@@ -98,15 +98,15 @@ export default async function Report({ params }) {
   const neg = negFor(bill?.category);
   const phone = phoneFor(bill?.provider_name);
 
-  const card = { background: '#fff', border: '1px solid #eadfd5', borderRadius: 14, padding: 22, marginBottom: 16 };
+  const card = { background: '#fff', border: '1px solid #f0e7dc', borderRadius: 18, padding: 22, marginBottom: 16, boxShadow: '0 4px 18px rgba(36,26,18,0.06)' };
   const h3 = { margin: '0 0 10px', fontSize: 17 };
 
   return (
     <div>
       <style>{`@media print { .no-print { display: none !important; } a { text-decoration: none !important; color: #241a12 !important; } }`}</style>
 
-      <div style={{ background: 'linear-gradient(135deg,#ea6a1f,#c14f0a)', color: '#fff', borderRadius: 16, padding: '22px 26px', marginBottom: 18, display: 'flex', alignItems: 'center', gap: 16 }}>
-        <div style={{ fontSize: 44 }}>{bot.emoji}</div>
+      <div style={{ background: 'linear-gradient(135deg,#ea6a1f,#c14f0a)', color: '#fff', borderRadius: 20, padding: '24px 28px', marginBottom: 18, display: 'flex', alignItems: 'center', gap: 16, boxShadow: '0 10px 30px rgba(234,106,31,0.28)' }}>
+        <div style={{ fontSize: 44, width: 66, height: 66, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.16)', borderRadius: 18 }}>{bot.emoji}</div>
         <div>
           <div style={{ fontSize: 14, opacity: 0.9 }}>Hi, I'm {bot.name} — {bot.role}.</div>
           <div style={{ fontSize: 22, fontWeight: 800 }}>{bill?.provider_name || 'Your bill'}</div>
@@ -139,7 +139,7 @@ export default async function Report({ params }) {
       )}
 
       {a.annual_estimate && (
-        <div style={{ ...card, background: '#fdf6ef', borderColor: '#ea6a1f' }}><h3 style={h3}>📅 Yearly estimate</h3>
+        <div style={{ ...card, background: 'linear-gradient(135deg,#fff,#fdf6ef)', borderColor: '#ea6a1f' }}><h3 style={h3}>📅 Yearly estimate</h3>
           <p style={{ fontSize: 30, fontWeight: 800, margin: 0 }}>${Number(a.annual_estimate).toFixed(0)}<span style={{ fontSize: 14, fontWeight: 400, color: '#6e6058' }}> {isDeposit ? '/year interest or value, if typical' : '/year if this bill is typical'}</span></p>
         </div>
       )}
