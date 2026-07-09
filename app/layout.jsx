@@ -40,6 +40,7 @@ const GLOBAL_CSS = `
   .bs-link:hover { transform: translateY(-2px); }
   .bs-card { transition: transform .15s ease, box-shadow .15s ease; }
   .bs-card:hover { transform: translateY(-3px); box-shadow: 0 14px 34px rgba(36,26,18,0.12); }
+  .bs-foot a:hover { color: var(--brand); }
   input:focus, textarea:focus { outline: none; border-color: var(--brand) !important; box-shadow: 0 0 0 3px rgba(234,106,31,0.15); }
   @media (max-width: 640px) {
     .bs-nav-label { display:none; }
@@ -50,6 +51,7 @@ const GLOBAL_CSS = `
 
 const pill = { padding:'9px 18px', borderRadius:999, textDecoration:'none', fontWeight:700, fontSize:14 };
 const badge = { fontSize:12.5, fontWeight:700, color:'#4a3f36', background:'#fff', border:'1px solid #efe3d6', borderRadius:999, padding:'7px 14px', boxShadow:'0 1px 4px rgba(36,26,18,0.05)' };
+const footLink = { color:'#6e6058', textDecoration:'none', fontWeight:700, fontSize:13 };
 
 export default async function RootLayout({ children }) {
   const supabase = await createClient();
@@ -84,6 +86,10 @@ export default async function RootLayout({ children }) {
             <span style={badge}>✅ We help you negotiate &amp; save</span>
             <span style={badge}>🚫 Not a comparison site</span>
             <span style={badge}>🧭 No personal advice — you stay in control</span>
+          </div>
+          <div className="bs-foot" style={{ display:'flex', flexWrap:'wrap', gap:16, marginBottom:12 }}>
+            <a href="/privacy" style={footLink}>Privacy Policy</a>
+            <a href="/terms" style={footLink}>Terms &amp; Conditions</a>
           </div>
           <p style={{ fontSize:12, color:'#6e6058', lineHeight:1.55, margin:0 }}>
             BillSavvy AI reads your household bills and shows you how to understand them and negotiate a better deal with your existing provider. We are not a comparison or switching service, and we do not provide personal financial, credit, insurance or legal advice. AI-generated information is general only and savings are not guaranteed — you make your own decisions.
