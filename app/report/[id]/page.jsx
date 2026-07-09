@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/server';
 import DownloadButton from '../../components/DownloadButton';
+import ReportChat from '../../components/ReportChat';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,6 +29,50 @@ const BOTS = {
   other: { name: 'Savvy', emoji: '📄', role: 'your bill analyst' },
 };
 
+// Major AU provider main lines. Numbers can change — always confirm against your bill.
+const PROVIDER_PHONES = {
+  'agl': '131 245', 'origin': '13 24 61', 'energyaustralia': '133 466', 'energy australia': '133 466',
+  'red energy': '131 806', 'alinta': '13 37 02', 'simply energy': '13 88 08', 'momentum': '1300 662 778',
+  'telstra': '13 22 00', 'optus': '133 937', 'vodafone': '1300 650 410', 'tpg': '13 14 23',
+  'iinet': '13 22 58', 'aussie broadband': '1300 880 905', 'belong': '1300 235 664', 'dodo': '13 36 36',
+  'commonwealth': '13 2221', 'commbank': '13 2221', 'westpac': '13 20 32', 'nab': '13 22 65',
+  'anz': '13 13 14', 'ing': '133 464', 'bankwest': '13 17 18', 'macquarie': '13 62 27', 'st.george': '13 33 30', 'st george': '13 33 30',
+  'nrma': '132 132', 'aami': '13 22 44', 'budget direct': '1300 139 591', 'allianz': '13 1000',
+  'gio': '13 10 10', 'racv': '13 72 28', 'racq': '13 19 05', 'youi': '13 95 68', 'suncorp': '13 11 55',
+  'bupa': '134 135', 'medibank': '132 331', 'hcf': '13 13 34', 'nib': '13 14 63', 'ahm': '134 246',
+};
+
+const NEGOTIATION = {
+  energy: { team: 'customer retention or loyalty team', opener: "Hi, my energy plan is up for review and I've seen better offers around. What's the best plan and discount you can offer me as an existing customer before I look at switching?" },
+  telco: { team: 'cancellations or retention team', opener: "Hi, I'm thinking about moving to another provider. Before I do, what's the best deal you can offer to keep me?" },
+  mortgage: { team: 'home-loan pricing or "customer care" retention team', opener: "Hi, I've been reviewing my home loan and I've seen lower rates advertised elsewhere. Before I look at refinancing, what's the best rate you can offer to keep me as a customer?" },
+  loan: { team: 'hardship or retention team', opener: "Hi, I'm reviewing my repayments and costs. Are there any lower-rate options or fee waivers available to me as an existing customer?" },
+  insurance: { team: 'retention or loyalty team', opener: "Hi, my premium has gone up and I've received cheaper quotes elsewhere. Can you review my policy and let me know the best price you can do to keep me?" },
+  health: { team: 'retention team', opener: "Hi, I'm reviewing my cover and cost. Are there any current offers, or a plan that better matches what I actually use, before I compare other funds?" },
+  deposit: { team: 'customer care / savings team', opener: "Hi, I've noticed higher savings rates available elsewhere. Can you match or improve the rate on my account so I don't have to move my money?" },
+  other: { team: 'retention or customer care team', opener: "Hi, I'm reviewing this account and I've seen better offers. What's the best you can do to keep me as a customer?" },
+};
+
+function negFor(cat) {
+  if (['electricity', 'gas', 'water', 'solar', 'ev_charging'].includes(cat)) return NEGOTIATION.energy;
+  if (['internet', 'mobile', 'phone'].includes(cat)) return NEGOTIATION.telco;
+  if (cat === 'mortgage') return NEGOTIATION.mortgage;
+  if (['personal_loan', 'credit_card'].includes(cat)) return NEGOTIATION.loan;
+  if (['home_insurance', 'car_insurance', 'landlord_insurance'].includes(cat)) return NEGOTIATION.insurance;
+  if (cat === 'health_insurance') return NEGOTIATION.health;
+  if (['savings_account', 'term_deposit'].includes(cat)) return NEGOTIATION.deposit;
+  return NEGOTIATION.other;
+}
+
+function phoneFor(provider) {
+  if (!provider) return null;
+  const p = provider.toLowerCase();
+  for (const key of Object.keys(PROVIDER_PHONES)) {
+    if (p.includes(key)) return PROVIDER_PHONES[key];
+  }
+  return null;
+}
+
 const TIPS = [
   'Be polite but firm — mention you are reviewing your options and considering switching.',
   'Ask directly: "Is this the best rate/plan you can offer me?" then stay quiet and let them answer.',
@@ -50,6 +95,8 @@ export default async function Report({ params }) {
   const bill = a.bills;
   const bot = BOTS[bill?.category] || BOTS.other;
   const isDeposit = ['savings_account', 'term_deposit'].includes(bill?.category);
+  const neg = negFor(bill?.category);
+  const phone = phoneFor(bill?.provider_name);
 
   const card = { background: '#fff', border: '1px solid #eadfd5', borderRadius: 14, padding: 22, marginBottom: 16 };
   const h3 = { margin: '0 0 10px', fontSize: 17 };
@@ -112,8 +159,16 @@ export default async function Report({ params }) {
       )}
 
       <div style={{ ...card, borderColor: '#ea6a1f' }}>
-        <h3 style={h3}>💪 {isDeposit ? 'How to get a better rate' : 'How to negotiate a better deal'}</h3>
-        <p style={{ fontSize: 13, color: '#6e6058', marginTop: 0 }}>General suggestions you may choose to use when you contact your provider. This is general information, not advice — the decision is yours.</p>
+        <h3 style={h3}>📞 Who to call &amp; what to say</h3>
+        <div style={{ background: '#fdf6ef', borderRadius: 10, padding: 14, marginBottom: 12 }}>
+          {phone
+            ? <p style={{ margin: 0, fontSize: 15 }}><b>{bill?.provider_name}:</b> <a href={`tel:${phone.replace(/\s/g, '')}`} style={{ color: '#c14f0a', fontWeight: 800 }}>{phone}</a></p>
+            : <p style={{ margin: 0, fontSize: 15 }}>Call the number printed on your <b>{bill?.category?.replace('_', ' ')}</b> statement or in your online account.</p>}
+          <p style={{ margin: '6px 0 0', fontSize: 12.5, color: '#6e6058' }}>Ask to speak with the <b>{neg.team}</b>. Numbers can change — please confirm against your latest bill.</p>
+        </div>
+        <div style={{ fontWeight: 700, marginBottom: 4 }}>A professional way to open the conversation:</div>
+        <p style={{ margin: '0 0 12px', background: '#f6f1ea', borderLeft: '3px solid #ea6a1f', padding: '10px 14px', borderRadius: 8, fontStyle: 'italic' }}>&ldquo;{neg.opener}&rdquo;</p>
+        <div style={{ fontWeight: 700, marginBottom: 6 }}>Tips to get a better outcome:</div>
         <ul style={{ margin: '0 0 14px', paddingLeft: 20 }}>
           {TIPS.map((t, i) => <li key={i} style={{ marginBottom: 6 }}>{t}</li>)}
         </ul>
@@ -125,6 +180,11 @@ export default async function Report({ params }) {
             </ol>
           </>
         )}
+        <p style={{ fontSize: 12, color: '#6e6058', margin: '12px 0 0' }}>General information only — the decision is always yours.</p>
+      </div>
+
+      <div className="no-print">
+        <ReportChat analysisId={a.id} botName={bot.name} botEmoji={bot.emoji} />
       </div>
 
       <div style={{ background: '#faf7f3', border: '1px solid #e3d9cd', borderRadius: 12, padding: 18, marginBottom: 16, fontSize: 12.5, color: '#6e6058', lineHeight: 1.55 }}>
