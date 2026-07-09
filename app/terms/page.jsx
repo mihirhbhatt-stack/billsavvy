@@ -43,7 +43,7 @@ export default function Terms() {
         <p>You may close your account anytime. We may suspend or terminate accounts for breach of these terms, with notice where practicable.</p>
 
         <h2 style={h2}>10. Governing law</h2>
-        <p>These terms are governed by the laws of New South Wales, Australia.</p>
+        <p>These terms are governed by the laws of Western Australia, Australia.</p>
 
         <h2 style={h2}>11. Mortgage &amp; credit</h2>
         <p>Any mortgage or loan information is general information only. It is not credit assistance, credit advice, or a recommendation to refinance, switch lenders, or take any credit action. BillSavvy AI does not hold an Australian Credit Licence and is not a mortgage broker. Any comparison refers only to publicly available rates and may not reflect rates available to you. Before making any credit decision, consider contacting your lender or a licensed mortgage broker or financial adviser.</p>
