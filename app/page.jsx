@@ -4,19 +4,21 @@ import { createClient } from '../lib/supabase/server';
 export const dynamic = 'force-dynamic';
 
 const CHIPS = [
-  { e: '⚡', t: 'Energy' },
-  { e: '🌐', t: 'Internet' },
-  { e: '📱', t: 'Mobile' },
-  { e: '🛡️', t: 'Insurance' },
-  { e: '🏦', t: 'Home loan' },
-  { e: '💰', t: 'Savings' },
+  { e: '⚡', t: 'Energy' }, { e: '🌐', t: 'Internet' }, { e: '📱', t: 'Mobile' },
+  { e: '🛡️', t: 'Insurance' }, { e: '🏦', t: 'Home loan' }, { e: '💰', t: 'Savings' },
+];
+
+const STEPS = [
+  { n: 1, e: '📤', c: '#ea6a1f', bg: 'linear-gradient(160deg,#fff 0%,#fff0e0 100%)', t: 'Upload your bill', d: 'Snap a photo or upload a PDF. Energy, internet, mobile, insurance, loans, savings — we read them all.' },
+  { n: 2, e: '🤖', c: '#7c5cff', bg: 'linear-gradient(160deg,#fff 0%,#efeaff 100%)', t: 'AI breaks it down', d: 'Every charge explained in plain English: what you pay, why it changed, and your real yearly cost.' },
+  { n: 3, e: '🤝', c: '#1f9d8b', bg: 'linear-gradient(160deg,#fff 0%,#e4f6f1 100%)', t: 'Negotiate & save', d: 'We give you the number to call, who to ask for, and exactly what to say. You stay in control.' },
 ];
 
 const FEATURES = [
-  { e: '🔍', c: '#ea6a1f', t: 'Plain-English breakdown', d: 'Every charge explained simply — what you pay, why it changed, and your real yearly cost.' },
-  { e: '📞', c: '#7c5cff', t: 'Who to call & what to say', d: 'The right number, the team to ask for, and a professional script to negotiate a better deal.' },
-  { e: '💬', c: '#1f9d8b', t: 'Ask our AI helper', d: 'A friendly assistant answers questions about your own bill, in plain words, any time.' },
-  { e: '🔒', c: '#e0567a', t: 'Private & secure', d: 'Your documents are encrypted and only ever seen by you. We never sell your data.' },
+  { e: '🔍', c: '#ea6a1f', bg: '#fff3e8', t: 'Plain-English breakdown', d: 'Every charge explained simply — what you pay, why it changed, and your real yearly cost.' },
+  { e: '📞', c: '#7c5cff', bg: '#f1ecff', t: 'Who to call & what to say', d: 'The right number, the team to ask for, and a professional script to negotiate a better deal.' },
+  { e: '💬', c: '#1f9d8b', bg: '#e7f7f2', t: 'Ask our AI helper', d: 'A friendly assistant answers questions about your own bill, in plain words, any time.' },
+  { e: '🔒', c: '#e0567a', bg: '#fdecf1', t: 'Private & secure', d: 'Your documents are encrypted and only ever seen by you. We never sell your data.' },
 ];
 
 const TRUST = [
@@ -30,9 +32,7 @@ export default async function Home() {
   const { data: { user } } = await supabase.auth.getUser();
   if (user) redirect('/dashboard');
 
-  const card = { flex: 1, minWidth: 220, background: '#fff', borderRadius: 18, padding: 24, border: '1px solid #f0e7dc', boxShadow: '0 4px 18px rgba(36,26,18,0.06)' };
   const h2 = { textAlign: 'center', fontSize: 'clamp(24px,5vw,32px)', margin: '0 0 6px' };
-  const stepCircle = (bg) => ({ width: 42, height: 42, borderRadius: '50%', background: bg, color: '#fff', fontWeight: 800, fontSize: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12, boxShadow: `0 6px 14px ${bg}55` });
 
   return (
     <div>
@@ -67,10 +67,17 @@ export default async function Home() {
       <section style={{ padding: 'clamp(36px,6vw,48px) 0 12px' }}>
         <h2 style={h2}>How it works</h2>
         <p style={{ textAlign: 'center', color: '#6e6058', margin: '0 auto 26px', maxWidth: 520 }}>Three simple steps — about a minute from upload to savings.</p>
-        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-          <div className="bs-card" style={card}><div style={stepCircle('#ea6a1f')}>1</div><h3 style={{ margin: '0 0 6px' }}>Upload your bill</h3><p style={{ color: '#6e6058', margin: 0 }}>Snap a photo or upload a PDF. Energy, internet, mobile, insurance, loans, savings — we read them all.</p></div>
-          <div className="bs-card" style={card}><div style={stepCircle('#7c5cff')}>2</div><h3 style={{ margin: '0 0 6px' }}>AI breaks it down</h3><p style={{ color: '#6e6058', margin: 0 }}>Every charge explained in plain English: what you pay, why it changed, and your real yearly cost.</p></div>
-          <div className="bs-card" style={card}><div style={stepCircle('#1f9d8b')}>3</div><h3 style={{ margin: '0 0 6px' }}>Negotiate & save</h3><p style={{ color: '#6e6058', margin: 0 }}>We give you the number to call, who to ask for, and exactly what to say. You stay in control.</p></div>
+        <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
+          {STEPS.map((s) => (
+            <div key={s.n} className="bs-card" style={{ flex: 1, minWidth: 230, background: s.bg, borderRadius: 20, padding: 26, border: `1px solid ${s.c}33`, borderTop: `5px solid ${s.c}`, boxShadow: `0 8px 24px ${s.c}1f` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                <span style={{ width: 46, height: 46, borderRadius: 14, background: s.c, color: '#fff', fontWeight: 800, fontSize: 22, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 6px 14px ${s.c}66` }}>{s.e}</span>
+                <span style={{ fontSize: 13, fontWeight: 800, color: s.c, letterSpacing: 1, textTransform: 'uppercase' }}>Step {s.n}</span>
+              </div>
+              <h3 style={{ margin: '0 0 6px', fontSize: 19 }}>{s.t}</h3>
+              <p style={{ color: '#5a5048', margin: 0 }}>{s.d}</p>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -79,8 +86,8 @@ export default async function Home() {
         <h2 style={{ ...h2, marginBottom: 26 }}>Why households love BillSavvy</h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(230px,1fr))', gap: 16 }}>
           {FEATURES.map((f) => (
-            <div key={f.t} className="bs-card" style={{ ...card, borderTop: `4px solid ${f.c}` }}>
-              <div style={{ fontSize: 30, width: 54, height: 54, display: 'flex', alignItems: 'center', justifyContent: 'center', background: `${f.c}18`, borderRadius: 14, marginBottom: 12 }}>{f.e}</div>
+            <div key={f.t} className="bs-card" style={{ background: `linear-gradient(160deg,#fff 55%,${f.bg} 100%)`, borderRadius: 18, padding: 24, border: `1px solid ${f.c}2e`, borderTop: `4px solid ${f.c}`, boxShadow: '0 4px 18px rgba(36,26,18,0.06)' }}>
+              <div style={{ fontSize: 30, width: 54, height: 54, display: 'flex', alignItems: 'center', justifyContent: 'center', background: f.bg, borderRadius: 14, marginBottom: 12 }}>{f.e}</div>
               <h3 style={{ margin: '0 0 6px' }}>{f.t}</h3>
               <p style={{ color: '#6e6058', margin: 0 }}>{f.d}</p>
             </div>
@@ -107,11 +114,11 @@ export default async function Home() {
         <h2 style={h2}>Simple pricing</h2>
         <p style={{ textAlign: 'center', color: '#6e6058', margin: '0 auto 26px' }}>Start free. Upgrade only if you love it.</p>
         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'stretch' }}>
-          <div className="bs-card" style={card}><h3 style={{ margin: '0 0 4px' }}>Free</h3><p style={{ fontSize: 32, fontWeight: 800, margin: '0 0 8px' }}>$0</p><p style={{ color: '#6e6058', margin: 0 }}>Your first bill analysed free. Full AI report. No card required.</p></div>
-          <div className="bs-card" style={{ ...card, color: '#fff', background: 'linear-gradient(135deg,#ff8a3d,#ea6a1f,#c14f0a)', border: 'none', boxShadow: '0 14px 32px rgba(234,106,31,0.32)', position: 'relative' }}>
+          <div className="bs-card" style={{ flex: 1, minWidth: 220, background: '#fff', borderRadius: 18, padding: 24, border: '1px solid #f0e7dc', boxShadow: '0 4px 18px rgba(36,26,18,0.06)' }}><h3 style={{ margin: '0 0 4px' }}>Free</h3><p style={{ fontSize: 32, fontWeight: 800, margin: '0 0 8px' }}>$0</p><p style={{ color: '#6e6058', margin: 0 }}>Your first bill analysed free. Full AI report. No card required.</p></div>
+          <div className="bs-card" style={{ flex: 1, minWidth: 220, color: '#fff', background: 'linear-gradient(135deg,#ff8a3d,#ea6a1f,#c14f0a)', borderRadius: 18, padding: 24, border: 'none', boxShadow: '0 14px 32px rgba(234,106,31,0.32)', position: 'relative' }}>
             <span style={{ position: 'absolute', top: 16, right: 16, background: 'rgba(255,255,255,0.22)', fontSize: 11.5, fontWeight: 800, padding: '4px 10px', borderRadius: 999 }}>MOST POPULAR</span>
             <h3 style={{ margin: '0 0 4px', color: '#fff' }}>Premium</h3><p style={{ fontSize: 32, fontWeight: 800, margin: '0 0 8px' }}>$9.99<span style={{ fontSize: 14, fontWeight: 400, opacity: 0.9 }}>/mo</span></p><p style={{ margin: 0, opacity: 0.95 }}>Unlimited uploads, AI chat, expense tracking, renewal reminders, mortgage health check.</p></div>
-          <div className="bs-card" style={card}><h3 style={{ margin: '0 0 4px' }}>Family</h3><p style={{ fontSize: 32, fontWeight: 800, margin: '0 0 8px' }}>$19.99<span style={{ fontSize: 14, fontWeight: 400, color: '#6e6058' }}>/mo</span></p><p style={{ color: '#6e6058', margin: 0 }}>Everything in Premium plus up to 5 household members and split-bill features.</p></div>
+          <div className="bs-card" style={{ flex: 1, minWidth: 220, background: '#fff', borderRadius: 18, padding: 24, border: '1px solid #f0e7dc', boxShadow: '0 4px 18px rgba(36,26,18,0.06)' }}><h3 style={{ margin: '0 0 4px' }}>Family</h3><p style={{ fontSize: 32, fontWeight: 800, margin: '0 0 8px' }}>$19.99<span style={{ fontSize: 14, fontWeight: 400, color: '#6e6058' }}>/mo</span></p><p style={{ color: '#6e6058', margin: 0 }}>Everything in Premium plus up to 5 household members and split-bill features.</p></div>
         </div>
         <p style={{ fontSize: 13, color: '#6e6058', textAlign: 'center', marginTop: 14 }}>Premium and Family coming soon. Start free today.</p>
       </section>
