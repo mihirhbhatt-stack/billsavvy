@@ -4,7 +4,9 @@ import { createClient } from '@supabase/supabase-js';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 300;
 
-// Normalise an Australian mobile to +61 E.164 form for SMS.
+// WA FuelWatch product codes for each fuel type.
+const FUEL_PRODUCT = { U91: 1, E10: 12, P95: 2, P98: 6, DL: 4, LPG: 5 };
+
 function auMobile(p) {
   let s = (p || '').replace(/[^0-9]/g, '');
   if (s.startsWith('0')) s = '61' + s.slice(1);
@@ -13,30 +15,31 @@ function auMobile(p) {
   return '+' + s;
 }
 
-// Look up the cheapest station near a postcode for a fuel type via a national fuel-price API.
-// Configure FUEL_API_URL + FUEL_API_KEY in your environment (e.g. FuelPrice.io / CheckPetrol).
-async function getCheapestFuel(postcode, fuelType) {
-  const base = process.env.FUEL_API_URL;
-  const key = process.env.FUEL_API_KEY;
-  if (!base || !key || !postcode) return null;
+// Free WA FuelWatch RSS — returns cheapest stations for a suburb, sorted cheapest first.
+async function getCheapestFuel(suburb, fuelType) {
+  if (!suburb) return null;
+  const product = FUEL_PRODUCT[fuelType] || 1;
+  const url = 'https://www.fuelwatch.wa.gov.au/fuelwatch/fuelWatchRSS?Product=' + product +
+    '&Suburb=' + encodeURIComponent(suburb.trim()) + '&Surrounding=yes';
   try {
-    const url = base + (base.includes('?') ? '&' : '?') + 'postcode=' + encodeURIComponent(postcode) + '&fueltype=' + encodeURIComponent(fuelType);
-    const res = await fetch(url, { headers: { Authorization: 'Bearer ' + key, Accept: 'application/json' } });
+    const res = await fetch(url, { headers: { 'User-Agent': 'BillSavvy/1.0', Accept: 'application/rss+xml, application/xml, text/xml' } });
     if (!res.ok) return null;
-    const data = await res.json();
-    const list = Array.isArray(data) ? data : (data.stations || data.prices || data.results || data.data || []);
-    const norm = (list || []).map((s) => ({
-      price: Number(s.price ?? s.Price ?? s.amount ?? s.value),
-      station: s.station || s.name || s.Name || s.brand || 'a nearby station',
-      address: s.address || s.Address || s.location || s.suburb || '',
-    })).filter((s) => s.price > 0);
-    if (!norm.length) return null;
-    norm.sort((a, b) => a.price - b.price);
-    return norm[0];
+    const xml = await res.text();
+    const item = xml.split('<item>')[1];
+    if (!item) return null;
+    const grab = (tag) => {
+      const m = item.match(new RegExp('<' + tag + '>([\\s\\S]*?)<\\/' + tag + '>', 'i'));
+      return m ? m[1].replace(/<!\[CDATA\[|\]\]>/g, '').trim() : '';
+    };
+    const title = grab('title');
+    const price = grab('price') || (title.match(/[\d.]+/) || [''])[0];
+    const station = grab('trading-name') || grab('brand') || title.replace(/^[\d.]+[:\s-]*/, '') || 'a nearby station';
+    const address = grab('address') || grab('location') || '';
+    if (!price) return null;
+    return { price, station, address };
   } catch { return null; }
 }
 
-// Send an SMS via ClickSend.
 async function sendSms(to, body) {
   const user = process.env.CLICKSEND_USERNAME;
   const key = process.env.CLICKSEND_API_KEY;
@@ -54,7 +57,6 @@ async function sendSms(to, body) {
 }
 
 async function run() {
-  // Service-role client so the cron can read all opted-in users (bypasses row-level security). Server-only.
   const admin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY,
@@ -62,16 +64,16 @@ async function run() {
   );
   const { data: users } = await admin
     .from('profiles')
-    .select('phone, postcode, fuel_type, first_name')
+    .select('phone, suburb, fuel_type, first_name')
     .eq('fuel_alerts', true);
 
   let sent = 0, skipped = 0;
   for (const u of (users || [])) {
-    if (!u.phone || !u.postcode) { skipped++; continue; }
-    const cheapest = await getCheapestFuel(u.postcode, u.fuel_type || 'U91');
+    if (!u.phone || !u.suburb) { skipped++; continue; }
+    const cheapest = await getCheapestFuel(u.suburb, u.fuel_type || 'U91');
     if (!cheapest) { skipped++; continue; }
     const hi = u.first_name ? u.first_name + ', ' : '';
-    const body = 'BillSavvy: Hi ' + hi + 'cheapest ' + (u.fuel_type || 'U91') + ' near ' + u.postcode + ' is ' + cheapest.price + 'c at ' + cheapest.station + (cheapest.address ? ', ' + cheapest.address : '') + '. Reply STOP to opt out.';
+    const body = 'BillSavvy: Hi ' + hi + 'cheapest ' + (u.fuel_type || 'U91') + ' near ' + u.suburb + ' is ' + cheapest.price + 'c at ' + cheapest.station + (cheapest.address ? ', ' + cheapest.address : '') + '. Reply STOP to opt out.';
     if (await sendSms(u.phone, body)) sent++; else skipped++;
   }
   return { total: (users || []).length, sent, skipped };
