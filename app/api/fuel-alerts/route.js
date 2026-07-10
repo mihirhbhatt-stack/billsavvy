@@ -40,7 +40,6 @@ async function getTopStations(suburb, fuelType, day, n) {
   } catch { return []; }
 }
 
-// Send SMS via Mobile Message (cheapest, preferred), else Twilio, else ClickSend.
 async function sendSms(to, bodyRaw) {
   const num = auMobile(to);
   if (!num) return false;
@@ -133,17 +132,29 @@ async function run() {
   return { total: (users || []).length, sent, skipped };
 }
 
+// Accept a manual secret (?secret=) OR Vercel Cron's Authorization: Bearer CRON_SECRET header.
 function authed(request) {
   const secret = new URL(request.url).searchParams.get('secret');
-  return process.env.CRON_SECRET && secret === process.env.CRON_SECRET;
+  if (process.env.CRON_SECRET && secret === process.env.CRON_SECRET) return true;
+  const authz = request.headers.get('authorization') || '';
+  if (process.env.CRON_SECRET && authz === 'Bearer ' + process.env.CRON_SECRET) return true;
+  return false;
 }
 
-export async function GET(request) {
+// Safety guard: only actually send on Tuesdays in Perth (add &force=1 to override for testing).
+function isPerthTuesday() {
+  try {
+    const d = new Intl.DateTimeFormat('en-AU', { timeZone: 'Australia/Perth', weekday: 'short' }).format(new Date());
+    return d.startsWith('Tue');
+  } catch { return true; }
+}
+
+async function handle(request) {
   if (!authed(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const force = new URL(request.url).searchParams.get('force') === '1';
+  if (!force && !isPerthTuesday()) return NextResponse.json({ skipped: 'not-tuesday-in-perth' });
   return NextResponse.json(await run());
 }
 
-export async function POST(request) {
-  if (!authed(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  return NextResponse.json(await run());
-}
+export async function GET(request) { return handle(request); }
+export async function POST(request) { return handle(request); }
