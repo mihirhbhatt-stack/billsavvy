@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 
 const CHIPS = [
   { e: '⚡', t: 'Energy' }, { e: '🌐', t: 'Internet' }, { e: '📱', t: 'Mobile' },
-  { e: '🛡️', t: 'Insurance' }, { e: '🏦', t: 'Home loan' }, { e: '💰', t: 'Savings' },
+  { e: '🛡️', t: 'Insurance' }, { e: '🏦', t: 'Home loan' }, { e: '💰', t: 'Savings' }, { e: '⛽', t: 'Fuel' },
 ];
 
 const STEPS = [
@@ -33,7 +33,6 @@ export default async function Home() {
   if (user) redirect('/dashboard');
 
   const h2 = { textAlign: 'center', fontSize: 'clamp(24px,5vw,32px)', margin: '0 0 6px' };
-  const chip = { display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.22)', color: '#fff', fontWeight: 700, fontSize: 12.5, padding: '5px 12px', borderRadius: 999, marginBottom: 12 };
   const iconCircle = { fontSize: 26, width: 54, height: 54, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.24)', borderRadius: 16, marginBottom: 12, boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.35)' };
 
   return (
@@ -71,9 +70,9 @@ export default async function Home() {
         <p style={{ textAlign: 'center', color: '#6e6058', margin: '0 auto 26px', maxWidth: 520 }}>Three simple steps — about a minute from upload to savings.</p>
         <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
           {STEPS.map((s) => (
-            <div key={s.n} className="bs-card" style={{ flex: 1, minWidth: 230, background: s.g, color: '#fff', borderRadius: 20, padding: 26, boxShadow: `0 14px 32px ${s.sh}` }}>
+            <div key={s.n} className="bs-card" style={{ flex: 1, minWidth: 230, background: s.g, color: '#fff', borderRadius: 20, padding: 26, boxShadow: '0 14px 32px ' + s.sh }}>
               <div style={iconCircle}>{s.e}</div>
-              <span style={chip}>STEP {s.n}</span>
+              <span style={{ display: 'inline-block', background: 'rgba(255,255,255,0.22)', color: '#fff', fontWeight: 700, fontSize: 12.5, padding: '5px 12px', borderRadius: 999, marginBottom: 12 }}>STEP {s.n}</span>
               <h3 style={{ margin: '4px 0 6px', fontSize: 20, color: '#fff' }}>{s.t}</h3>
               <p style={{ color: 'rgba(255,255,255,0.92)', margin: 0, lineHeight: 1.5 }}>{s.d}</p>
             </div>
@@ -86,12 +85,37 @@ export default async function Home() {
         <h2 style={{ ...h2, marginBottom: 26 }}>Why households love BillSavvy</h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(230px,1fr))', gap: 16 }}>
           {FEATURES.map((f) => (
-            <div key={f.t} className="bs-card" style={{ background: f.g, color: '#fff', borderRadius: 18, padding: 24, boxShadow: `0 12px 28px ${f.sh}` }}>
+            <div key={f.t} className="bs-card" style={{ background: f.g, color: '#fff', borderRadius: 18, padding: 24, boxShadow: '0 12px 28px ' + f.sh }}>
               <div style={iconCircle}>{f.e}</div>
               <h3 style={{ margin: '0 0 6px', color: '#fff' }}>{f.t}</h3>
               <p style={{ color: 'rgba(255,255,255,0.92)', margin: 0, lineHeight: 1.5 }}>{f.d}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* FUEL ALERTS */}
+      <section style={{ margin: '22px 0', borderRadius: 24, padding: 'clamp(32px,5vw,44px) clamp(22px,4vw,36px)', color: '#fff',
+        background: 'radial-gradient(circle at 12% 18%, #34e0a1 0%, rgba(52,224,161,0) 55%), linear-gradient(135deg,#1f9d8b 0%,#0f6f5c 100%)', boxShadow: '0 18px 44px rgba(31,157,139,0.30)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 24, alignItems: 'center' }}>
+          <div>
+            <span style={{ display: 'inline-block', background: 'rgba(255,255,255,0.22)', fontWeight: 800, fontSize: 12.5, padding: '6px 14px', borderRadius: 999, marginBottom: 12 }}>⛽ FREE BONUS · WA</span>
+            <h2 style={{ margin: '0 0 10px', fontSize: 'clamp(23px,4.5vw,30px)', color: '#fff' }}>Cheapest fuel near you, texted every week</h2>
+            <p style={{ margin: '0 0 14px', fontSize: 16, lineHeight: 1.55, color: 'rgba(255,255,255,0.94)' }}>
+              Opt in and each week we text you the <b>3 cheapest servos</b> near your suburb — plus a heads-up when prices are about to <b>jump tomorrow</b>, so you fill up on the cheap day. Powered by free WA Government FuelWatch data.
+            </p>
+            <div style={{ background: 'rgba(255,255,255,0.14)', border: '1px solid rgba(255,255,255,0.28)', borderRadius: 14, padding: '14px 16px' }}>
+              <div style={{ fontWeight: 800, marginBottom: 4 }}>🚗🚗 The two-car trick</div>
+              <div style={{ fontSize: 14.5, color: 'rgba(255,255,255,0.94)', lineHeight: 1.5 }}>Timing both cars' fill-ups with the weekly alert can save 15–25¢/L versus the peak. For a two-car household that often covers Premium (<b>$9.99/mo</b>) within a couple of weeks — the rest of the savings are yours to keep.</div>
+            </div>
+            <p style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.82)', margin: '12px 0 0' }}>Currently <b>Western Australia only</b> — other states launching soon. Savings depend on your usage and prices, and aren't guaranteed. Free to receive; reply STOP anytime.</p>
+          </div>
+          <div style={{ background: '#fff', color: '#241a12', borderRadius: 18, padding: 18, boxShadow: '0 12px 28px rgba(0,0,0,0.18)', fontSize: 14, lineHeight: 1.5, maxWidth: 340, margin: '0 auto' }}>
+            <div style={{ fontSize: 12, color: '#6e6058', marginBottom: 8 }}>Your weekly text looks like:</div>
+            <div style={{ background: '#f6f1ea', borderRadius: 12, padding: '12px 14px', whiteSpace: 'pre-line' }}>
+              BillSavvy: Hi Mihir, cheapest U91 near Karrinyup today:{'\n'}1) 153.3c Burk{'\n'}2) 159.9c Ampol{'\n'}3) 159.9c Caltex{'\n'}** PRICES RISING to 165c tomorrow — fill up TODAY! **
+            </div>
+          </div>
         </div>
       </section>
 
@@ -101,7 +125,7 @@ export default async function Home() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(210px,1fr))', gap: 18 }}>
           {TRUST.map((t) => (
             <div key={t.t} style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 26, width: 58, height: 58, margin: '0 auto 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: `${t.c}22`, border: `1px solid ${t.c}55`, borderRadius: 16 }}>{t.e}</div>
+              <div style={{ fontSize: 26, width: 58, height: 58, margin: '0 auto 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: t.c + '22', border: '1px solid ' + t.c + '55', borderRadius: 16 }}>{t.e}</div>
               <div style={{ fontWeight: 800, fontSize: 16, color: t.c }}>{t.t}</div>
               <div style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.8)', marginTop: 4 }}>{t.d}</div>
             </div>
@@ -117,7 +141,7 @@ export default async function Home() {
           <div className="bs-card" style={{ flex: 1, minWidth: 220, background: '#fff', borderRadius: 18, padding: 24, border: '1px solid #f0e7dc', boxShadow: '0 4px 18px rgba(36,26,18,0.06)' }}><h3 style={{ margin: '0 0 4px' }}>Free</h3><p style={{ fontSize: 32, fontWeight: 800, margin: '0 0 8px' }}>$0</p><p style={{ color: '#6e6058', margin: 0 }}>Your first bill analysed free. Full AI report. No card required.</p></div>
           <div className="bs-card" style={{ flex: 1, minWidth: 220, color: '#fff', background: 'linear-gradient(135deg,#ff8a3d,#ea6a1f,#c14f0a)', borderRadius: 18, padding: 24, border: 'none', boxShadow: '0 14px 32px rgba(234,106,31,0.32)', position: 'relative' }}>
             <span style={{ position: 'absolute', top: 16, right: 16, background: 'rgba(255,255,255,0.22)', fontSize: 11.5, fontWeight: 800, padding: '4px 10px', borderRadius: 999 }}>MOST POPULAR</span>
-            <h3 style={{ margin: '0 0 4px', color: '#fff' }}>Premium</h3><p style={{ fontSize: 32, fontWeight: 800, margin: '0 0 8px' }}>$9.99<span style={{ fontSize: 14, fontWeight: 400, opacity: 0.9 }}>/mo</span></p><p style={{ margin: 0, opacity: 0.95 }}>Unlimited uploads, AI chat, expense tracking, renewal reminders, mortgage health check.</p></div>
+            <h3 style={{ margin: '0 0 4px', color: '#fff' }}>Premium</h3><p style={{ fontSize: 32, fontWeight: 800, margin: '0 0 8px' }}>$9.99<span style={{ fontSize: 14, fontWeight: 400, opacity: 0.9 }}>/mo</span></p><p style={{ margin: 0, opacity: 0.95 }}>Unlimited uploads, AI chat, weekly fuel alerts, renewal reminders, mortgage health check.</p></div>
           <div className="bs-card" style={{ flex: 1, minWidth: 220, background: '#fff', borderRadius: 18, padding: 24, border: '1px solid #f0e7dc', boxShadow: '0 4px 18px rgba(36,26,18,0.06)' }}><h3 style={{ margin: '0 0 4px' }}>Family</h3><p style={{ fontSize: 32, fontWeight: 800, margin: '0 0 8px' }}>$19.99<span style={{ fontSize: 14, fontWeight: 400, color: '#6e6058' }}>/mo</span></p><p style={{ color: '#6e6058', margin: 0 }}>Everything in Premium plus up to 5 household members and split-bill features.</p></div>
         </div>
         <p style={{ fontSize: 13, color: '#6e6058', textAlign: 'center', marginTop: 14 }}>Premium and Family coming soon. Start free today.</p>
