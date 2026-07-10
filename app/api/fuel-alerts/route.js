@@ -15,30 +15,32 @@ function auMobile(p) {
   return '+' + s;
 }
 
-async function getCheapestFuel(suburb, fuelType) {
-  if (!suburb) return null;
+// Free WA FuelWatch RSS. day = 'today' | 'tomorrow'. Returns up to n cheapest stations (cheapest first).
+async function getTopStations(suburb, fuelType, day, n) {
+  if (!suburb) return [];
   const product = FUEL_PRODUCT[fuelType] || 1;
-  const url = 'https://www.fuelwatch.wa.gov.au/fuelwatch/fuelWatchRSS?Product=' + product +
+  let url = 'https://www.fuelwatch.wa.gov.au/fuelwatch/fuelWatchRSS?Product=' + product +
     '&Suburb=' + encodeURIComponent(suburb.trim()) + '&Surrounding=yes';
+  if (day === 'tomorrow') url += '&Day=tomorrow';
   try {
     const res = await fetch(url, { headers: { 'User-Agent': 'BillSavvy/1.0', Accept: 'application/rss+xml, application/xml, text/xml' } });
-    if (!res.ok) return null;
+    if (!res.ok) return [];
     const xml = await res.text();
-    const item = xml.split('<item>')[1];
-    if (!item) return null;
-    const grab = (tag) => {
+    const parts = xml.split('<item>').slice(1, (n || 3) + 1);
+    const grab = (item, tag) => {
       const m = item.match(new RegExp('<' + tag + '>([\\s\\S]*?)<\\/' + tag + '>', 'i'));
       return m ? m[1].replace(/<!\[CDATA\[|\]\]>/g, '').trim() : '';
     };
-    const title = grab('title');
-    const price = grab('price') || (title.match(/[\d.]+/) || [''])[0];
-    const station = grab('trading-name') || grab('brand') || title.replace(/^[\d.]+[:\s-]*/, '') || 'a nearby station';
-    const address = grab('address') || grab('location') || '';
-    if (!price) return null;
-    return { price, station, address };
-  } catch { return null; }
+    return parts.map((item) => {
+      const title = grab(item, 'title');
+      const priceStr = grab(item, 'price') || (title.match(/[\d.]+/) || [''])[0];
+      const station = grab(item, 'trading-name') || grab(item, 'brand') || title.replace(/^[\d.]+[:\s-]*/, '') || 'Station';
+      return { price: parseFloat(priceStr), station };
+    }).filter((s) => s.price > 0);
+  } catch { return []; }
 }
 
+// Send SMS via Mobile Message (cheapest, preferred), else Twilio, else ClickSend.
 async function sendSms(to, bodyRaw) {
   const num = auMobile(to);
   if (!num) return false;
@@ -105,10 +107,27 @@ async function run() {
   let sent = 0, skipped = 0;
   for (const u of (users || [])) {
     if (!u.phone || !u.suburb) { skipped++; continue; }
-    const cheapest = await getCheapestFuel(u.suburb, u.fuel_type || 'U91');
-    if (!cheapest) { skipped++; continue; }
+    const ft = u.fuel_type || 'U91';
+    const today = await getTopStations(u.suburb, ft, 'today', 3);
+    if (!today.length) { skipped++; continue; }
+    const tomorrow = await getTopStations(u.suburb, ft, 'tomorrow', 1);
+
+    const lines = today.map((s, i) => (i + 1) + ') ' + s.price.toFixed(1) + 'c ' + s.station).join('\n');
+    let saving = '';
+    if (today.length >= 2) {
+      const diff = today[today.length - 1].price - today[0].price;
+      if (diff >= 1) saving = 'Top pick saves ~' + diff.toFixed(0) + 'c/L vs #' + today.length + ' nearby. ';
+    }
+    let trend;
+    const tmr = tomorrow.length ? tomorrow[0].price : null;
+    if (tmr && tmr - today[0].price >= 1) trend = '** PRICES RISING to ' + tmr.toFixed(1) + 'c tomorrow - fill up TODAY! **';
+    else if (tmr && today[0].price - tmr >= 1) trend = 'Good news: cheapest may drop to ' + tmr.toFixed(1) + 'c tomorrow.';
+    else trend = 'Prices can change daily - grab today\'s deal!';
+
     const hi = u.first_name ? u.first_name + ', ' : '';
-    const body = 'BillSavvy: Hi ' + hi + 'cheapest ' + (u.fuel_type || 'U91') + ' near ' + u.suburb + ' is ' + cheapest.price + 'c at ' + cheapest.station + (cheapest.address ? ', ' + cheapest.address : '') + '. {optout}';
+    const body = 'BillSavvy: Hi ' + hi + 'cheapest ' + ft + ' near ' + u.suburb + ' today:\n' + lines +
+      '\n' + saving + trend + ' {optout}';
+
     if (await sendSms(u.phone, body)) sent++; else skipped++;
   }
   return { total: (users || []).length, sent, skipped };
