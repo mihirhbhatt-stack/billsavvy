@@ -15,7 +15,6 @@ function auMobile(p) {
   return '+' + s;
 }
 
-// Free WA FuelWatch RSS — returns cheapest stations for a suburb, sorted cheapest first.
 async function getCheapestFuel(suburb, fuelType) {
   if (!suburb) return null;
   const product = FUEL_PRODUCT[fuelType] || 1;
@@ -40,20 +39,56 @@ async function getCheapestFuel(suburb, fuelType) {
   } catch { return null; }
 }
 
-async function sendSms(to, body) {
-  const user = process.env.CLICKSEND_USERNAME;
-  const key = process.env.CLICKSEND_API_KEY;
+async function sendSms(to, bodyRaw) {
   const num = auMobile(to);
-  if (!user || !key || !num) return false;
-  try {
-    const auth = Buffer.from(user + ':' + key).toString('base64');
-    const res = await fetch('https://rest.clicksend.com/v3/sms/send', {
-      method: 'POST',
-      headers: { Authorization: 'Basic ' + auth, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: [{ from: 'BillSavvy', to: num, body }] }),
-    });
-    return res.ok;
-  } catch { return false; }
+  if (!num) return false;
+
+  const mmUser = process.env.MOBILEMESSAGE_USERNAME;
+  const mmPass = process.env.MOBILEMESSAGE_PASSWORD;
+  const mmSender = process.env.MOBILEMESSAGE_SENDER;
+  if (mmUser && mmPass && mmSender) {
+    try {
+      const auth = Buffer.from(mmUser + ':' + mmPass).toString('base64');
+      const res = await fetch('https://api.mobilemessage.com.au/v1/messages', {
+        method: 'POST',
+        headers: { Authorization: 'Basic ' + auth, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: [{ to: num, message: bodyRaw, sender: mmSender }] }),
+      });
+      return res.ok;
+    } catch { return false; }
+  }
+
+  const body = bodyRaw.replace('{optout}', 'Reply STOP to opt out.');
+
+  const sid = process.env.TWILIO_ACCOUNT_SID;
+  const token = process.env.TWILIO_AUTH_TOKEN;
+  const tfrom = process.env.TWILIO_FROM;
+  if (sid && token && tfrom) {
+    try {
+      const auth = Buffer.from(sid + ':' + token).toString('base64');
+      const res = await fetch('https://api.twilio.com/2010-04-01/Accounts/' + sid + '/Messages.json', {
+        method: 'POST',
+        headers: { Authorization: 'Basic ' + auth, 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ To: num, From: tfrom, Body: body }).toString(),
+      });
+      return res.ok;
+    } catch { return false; }
+  }
+
+  const cu = process.env.CLICKSEND_USERNAME;
+  const ck = process.env.CLICKSEND_API_KEY;
+  if (cu && ck) {
+    try {
+      const auth = Buffer.from(cu + ':' + ck).toString('base64');
+      const res = await fetch('https://rest.clicksend.com/v3/sms/send', {
+        method: 'POST',
+        headers: { Authorization: 'Basic ' + auth, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: [{ from: 'BillSavvy', to: num, body }] }),
+      });
+      return res.ok;
+    } catch { return false; }
+  }
+  return false;
 }
 
 async function run() {
@@ -73,7 +108,7 @@ async function run() {
     const cheapest = await getCheapestFuel(u.suburb, u.fuel_type || 'U91');
     if (!cheapest) { skipped++; continue; }
     const hi = u.first_name ? u.first_name + ', ' : '';
-    const body = 'BillSavvy: Hi ' + hi + 'cheapest ' + (u.fuel_type || 'U91') + ' near ' + u.suburb + ' is ' + cheapest.price + 'c at ' + cheapest.station + (cheapest.address ? ', ' + cheapest.address : '') + '. Reply STOP to opt out.';
+    const body = 'BillSavvy: Hi ' + hi + 'cheapest ' + (u.fuel_type || 'U91') + ' near ' + u.suburb + ' is ' + cheapest.price + 'c at ' + cheapest.station + (cheapest.address ? ', ' + cheapest.address : '') + '. {optout}';
     if (await sendSms(u.phone, body)) sent++; else skipped++;
   }
   return { total: (users || []).length, sent, skipped };
